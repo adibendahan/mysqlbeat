@@ -19,6 +19,8 @@ This beat ships the results of any query defined on the config file to elastic.
  
 ## How to Build
 
+mysqlbeat uses Glide for dependency management. To install glide see: https://github.com/Masterminds/glide
+
 ```shell
 $ go build
 ```
