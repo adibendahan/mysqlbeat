@@ -14,8 +14,8 @@ This beat ships the results of any query defined on the config file to elastic.
  * 'two-columns' will be translated as value-column1:value-column2 for each row.
  * 'multiple-rows' each row will be a document (with columnname:value) - NO DELTA SUPPORT.
 
-* Any column that ends with the delatwildcard (default is __DELTA) will delta results, extremely useful for server counters.
-  ((neval - oldval)/timediff.Seconds())
+* Any column that ends with the delatwildcard (default is __DELTA) will send delta results, extremely useful for server counters.
+  ((newval - oldval)/timediff.Seconds())
  
 ## How to Build
 
