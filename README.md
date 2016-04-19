@@ -40,7 +40,7 @@ You must edit mysqlbeat configuration in ```mysqlbeat.yml``` .
  Since the template depends on the queries you will decide to run, I can't provide a template.
  I recommend completing the configuration and run the mysqlbeat just enough time to create the index, then get the _mapping and adjust it.
  Delete the index and send the new mapping with:
- 	curl -XPUT http://<host>:9200/_template/mysqlbeat -d@etc/mysqlbeat-template.json
+ 	```curl -XPUT http://<host>:9200/_template/mysqlbeat -d@etc/mysqlbeat-template.json```
 
 ## How to use
 
