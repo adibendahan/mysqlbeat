@@ -1,0 +1,32 @@
+################### Mysqlbeat Configuration Example #########################
+
+############################# Mysqlbeat ######################################
+
+mysqlbeat:
+  # Defines how often an event is sent to the output
+  #period: 10s
+
+  # Defines the mysql hostname that the beat will connect to
+  #hostname: "127.0.0.1"
+
+  # Defines the mysql port
+  #port: "3306"
+
+  # MAKE SURE THE USER ONLY HAS PERMISSIONS TO RUN THE QUERY DESIRED AND NOTHING ELSE.
+  # Defines the mysql user to use
+  #username: "mysqlbeat_user"
+
+  # Defines the mysql password to use (base64 []byte)
+  #password64: [01, 02, 03]
+
+  # Defines the queries that will run  - the query below is an example
+  #queries: ["SELECT IF(VARIABLE_NAME='COM_SELECT', 'COM_SELECT__DELTA', VARIABLE_NAME) VARIABLE_NAME, VARIABLE_VALUE  FROM information_schema.GLOBAL_STATUS WHERE VARIABLE_NAME='COM_SELECT'"]
+
+  # Defines the queries result types
+  # 'single-row' will be translated as columnname:value
+  # 'two-columns' will be translated as value-column1:value-column2 for each row
+  # 'multiple-rows' each row will be a document (with columnname:value)
+  #querytypes: ["two-columns"]
+
+  # Colums that end with the following wild card will report only delta in seconds ((neval - oldval)/timediff.Seconds())
+  #deltawildcard: "__DELTA"

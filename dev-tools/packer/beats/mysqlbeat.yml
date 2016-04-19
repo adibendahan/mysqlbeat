@@ -1,0 +1,4 @@
+beat_name: mysqlbeat
+beat_url: 'https://github.com/adibendahan'
+beat_repo: 'github.com/adibendahan'
+beat_description: Sends any mysql query result to Logstash or directly to Elasticsearch.
