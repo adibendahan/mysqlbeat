@@ -148,8 +148,6 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 			logp.Info("Password not selected, proceeding with 'mysqlbeat_pass' as default")
 		}
 
-		logp.Info("PASS: %s", bt.password)
-
 		bt.hostname = bt.beatConfig.Mysqlbeat.Hostname
 		bt.port = bt.beatConfig.Mysqlbeat.Port
 		bt.username = bt.beatConfig.Mysqlbeat.Username

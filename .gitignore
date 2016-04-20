@@ -6,3 +6,5 @@
 /mysqlbeat
 /mysqlbeat.test
 *.pyc
+
+dev-tools/packer/build/*
