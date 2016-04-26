@@ -458,6 +458,29 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 				b.Events.PublishEvent(mevent)
 				logp.Info("Event sent")
+			} else if bt.querytypes[index] == "show-slave-delay" && currentRow == 1 {
+
+				err = rows.Scan(scanArgs...)
+				if err != nil {
+					return err
+				}
+
+				for i, col := range values {
+
+					if string(columns[i]) == "Seconds_Behind_Master" {
+
+						strColName := string(columns[i])
+						strColValue := string(col)
+
+						nColValue, err := strconv.ParseInt(strColValue, 0, 64)
+
+						if err == nil {
+							event[strColName] = nColValue
+						}
+					}
+					rows.Close()
+
+				}
 			}
 		}
 

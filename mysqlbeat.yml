@@ -26,6 +26,7 @@ mysqlbeat:
   # 'single-row' will be translated as columnname:value
   # 'two-columns' will be translated as value-column1:value-column2 for each row
   # 'multiple-rows' each row will be a document (with columnname:value)
+  # 'show-slave-delay' will only send the `Seconds_Behind_Master` column from SHOW SLAVE STATUS
   #querytypes: ["two-columns"]
 
   # Colums that end with the following wild card will report only delta in seconds ((neval - oldval)/timediff.Seconds())
