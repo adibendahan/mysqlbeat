@@ -23,12 +23,183 @@
       "properties": {
         "@timestamp": {
           "type": "date"
+        },
+        "ABORTED_CONNECTS__DELTA": {
+          "type": "long"
+        },
+        "CONNECTION_ERRORS_INTERNAL__DELTA": {
+          "type": "long"
+        },
+        "CONNECTION_ERRORS_MAX_CONNECTIONS__DELTA": {
+          "type": "long"
+        },
+        "CONST_100": {
+          "type": "long"
+        },        
+        "CREATED_TMP_DISK_TABLES__DELTA": {
+          "type": "long"
+        },
+        "CREATED_TMP_FILES__DELTA": {
+          "type": "long"
+        },
+        "CREATED_TMP_TABLES__DELTA": {
+          "type": "long"
+        },
+        "HANDLER_COMMIT__DELTA": {
+          "type": "long"
+        },
+        "HANDLER_ROLLBACK__DELTA": {
+          "type": "long"
+        },
+        "HANDLER_SAVEPOINT_ROLLBACK__DELTA": {
+          "type": "long"
+        },
+        "HANDLER_SAVEPOINT__DELTA": {
+          "type": "long"
+        },
+        "INNODB_BUFFER_POOL_HIT_RATIO": {
+          "type": "double"
+        },
+        "INNODB_BUFFER_POOL_PAGES_DATA": {
+          "type": "long"
+        },
+        "INNODB_BUFFER_POOL_PAGES_FREE": {
+          "type": "long"
+        },
+        "INNODB_BUFFER_POOL_PAGES_TOTAL": {
+          "type": "long"
+        },
+        "INNODB_DATA_FSYNCS__DELTA": {
+          "type": "long"
+        },
+        "INNODB_DATA_READS__DELTA": {
+          "type": "long"
+        },
+        "INNODB_DATA_WRITES__DELTA": {
+          "type": "long"
+        },
+        "INNODB_LOG_WRITES__DELTA": {
+          "type": "long"
+        },
+        "INNODB_OS_LOG_FSYNCS__DELTA": {
+          "type": "long"
+        },
+        "INNODB_PAGES_CREATED__DELTA": {
+          "type": "long"
+        },
+        "INNODB_PAGES_READ__DELTA": {
+          "type": "long"
+        },
+        "INNODB_PAGES_WRITTEN__DELTA": {
+          "type": "long"
+        },
+        "INNODB_ROWS_DELETED__DELTA": {
+          "type": "long"
+        },
+        "INNODB_ROWS_INSERTED__DELTA": {
+          "type": "long"
+        },
+        "INNODB_ROWS_READ__DELTA": {
+          "type": "long"
+        },
+        "INNODB_ROWS_UPDATED__DELTA": {
+          "type": "long"
+        },
+        "INNODB_ROW_LOCK_TIME__DELTA": {
+          "type": "long"
+        },
+        "KEY_READS__DELTA": {
+          "type": "long"
+        },
+        "KEY_READ_REQUESTS__DELTA": {
+          "type": "long"
+        },
+        "KEY_WRITES__DELTA": {
+          "type": "long"
+        },
+        "KEY_WRITE_REQUESTS__DELTA": {
+          "type": "long"
+        },
+        "MAX_CONNECTIONS": {
+          "type": "long"
+        },
+        "OPENED_TABLES__DELTA": {
+          "type": "long"
+        },
+        "OPEN_FILES": {
+          "type": "long"
+        },
+        "OPEN_TABLES": {
+          "type": "long"
+        },
+        "QCACHE_HITS__DELTA": {
+          "type": "long"
+        },
+        "QCACHE_INSERTS__DELTA": {
+          "type": "long"
+        },
+        "QCACHE_LOWMEM_PRUNES__DELTA": {
+          "type": "long"
+        },
+        "QCACHE_NOT_CACHED__DELTA": {
+          "type": "long"
+        },
+        "QCACHE_QUERIES_IN_CACHE": {
+          "type": "long"
+        },
+        "SELECT_FULL_JOIN__DELTA": {
+          "type": "long"
+        },
+        "SELECT_FULL_RANGE_JOIN__DELTA": {
+          "type": "long"
+        },
+        "SELECT_RANGE_CHECK__DELTA": {
+          "type": "long"
+        },
+        "SELECT_RANGE__DELTA": {
+          "type": "long"
+        },
+        "SELECT_SCAN__DELTA": {
+          "type": "long"
+        },
+        "SLOW_QUERIES__DELTA": {
+          "type": "long"
+        },
+        "SORT_MERGE_PASSES__DELTA": {
+          "type": "long"
+        },
+        "SORT_RANGE__DELTA": {
+          "type": "long"
+        },
+        "SORT_ROWS__DELTA": {
+          "type": "long"
+        },
+        "SORT_SCAN__DELTA": {
+          "type": "long"
+        },
+        "Seconds_Behind_Master": {
+          "type": "long"
+        },
+        "TABLE_LOCKS_IMMEDIATE__DELTA": {
+          "type": "long"
+        },
+        "TABLE_LOCKS_WAITED__DELTA": {
+          "type": "long"
+        },
+        "TABLE_OPEN_CACHE": {
+          "type": "long"
+        },
+        "THREADS_CONNECTED": {
+          "type": "long"
+        },
+        "THREADS_RUNNING": {
+          "type": "long"
         }
       }
     }
   },
   "settings": {
-    "index.refresh_interval": "5s"
+    "index.refresh_interval": "10s"
   },
   "template": "mysqlbeat-*"
 }
