@@ -2,7 +2,6 @@
 Fully customizable Beat for MySQL server.
 This beat ships the results of any query defined on the config file to elastic.
 
-
 ## Current status
  This project is in an alpha stage, In fact this is the first time ever I wrote go code.
  Please excuse any rookie mistakes I might have done, fixes are welcome.
@@ -43,8 +42,14 @@ You must edit mysqlbeat configuration in ```mysqlbeat.yml``` .
  	```curl -XPUT http://<host>:9200/_template/mysqlbeat -d@etc/mysqlbeat-template.json```
 
 ## How to use
-
 Just run ```mysqlbeat -c mysqlbeat.yml``` and you are good to go.
+
+## MySQL Performance Dashboard by mysqlbeat
+
+Run the default configuration provided to get the following dashboard
+![mysql_performance_by_mysqlbeat__dashboard__kibana](https://cloud.githubusercontent.com/assets/2807536/14936629/3a3b88e8-0efa-11e6-87ef-eb864498d3ab.png)
+
+
 
 ## License
 GNU General Public License v2
