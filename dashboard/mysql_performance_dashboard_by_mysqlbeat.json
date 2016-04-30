@@ -1,0 +1,309 @@
+[
+  {
+    "_id": "MySQL-Performance-by-mysqlbeat",
+    "_type": "dashboard",
+    "_source": {
+      "title": "MySQL Performance by mysqlbeat",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"MySQL-Replication-Delay\",\"panelIndex\":1,\"row\":3,\"size_x\":6,\"size_y\":2,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-InnoDB-Buffer-Pool-Usage\",\"panelIndex\":2,\"row\":5,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-InnoDB-I-slash-O\",\"panelIndex\":3,\"row\":1,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-InnoDB-Buffer-Pool-Activity\",\"panelIndex\":4,\"row\":5,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-InnoDB-Row-Lock-Time\",\"panelIndex\":5,\"row\":9,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-InnoDB-Buffer-Pool-Hit-Ratio\",\"panelIndex\":6,\"row\":9,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-Server-List\",\"panelIndex\":7,\"row\":1,\"size_x\":6,\"size_y\":2,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-InnoDB-Row-Lock-Waits\",\"panelIndex\":8,\"row\":13,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-InnoDB-Row-Operations\",\"panelIndex\":9,\"row\":13,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-Files-and-Tables\",\"panelIndex\":10,\"row\":17,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-Connections\",\"panelIndex\":11,\"row\":17,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-MyISAM-Indexes\",\"panelIndex\":12,\"row\":21,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-Temporary-Objects\",\"panelIndex\":13,\"row\":21,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-Transaction-Handler\",\"panelIndex\":14,\"row\":25,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-Sorts\",\"panelIndex\":15,\"row\":25,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":1,\"id\":\"MySQL-Table-Locks\",\"panelIndex\":16,\"row\":29,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"col\":7,\"id\":\"MySQL-Query-Cache\",\"panelIndex\":17,\"row\":29,\"size_x\":6,\"size_y\":4,\"type\":\"visualization\"},{\"id\":\"MySQL-Select-Types\",\"type\":\"visualization\",\"panelIndex\":18,\"size_x\":6,\"size_y\":4,\"col\":1,\"row\":33}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-2\":{\"vis\":{\"legendOpen\":true}},\"P-5\":{\"vis\":{\"legendOpen\":false}},\"P-6\":{\"vis\":{\"legendOpen\":false}},\"P-8\":{\"vis\":{\"legendOpen\":false}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}}}]}"
+      }
+    }
+  },
+  {
+    "_id": "mysqlbeat",
+    "_type": "search",
+    "_source": {
+      "title": "mysqlbeat",
+      "description": "",
+      "hits": 0,
+      "columns": [
+        "_source"
+      ],
+      "sort": [
+        "@timestamp",
+        "desc"
+      ],
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"mysqlbeat-*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-I-slash-O",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB I/O",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Usage\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"stacked\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"5\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_DATA_READS__DELTA\",\"customLabel\":\"Data Reads\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_DATA_WRITES__DELTA\",\"customLabel\":\"Data Writes\"}},{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_LOG_WRITES__DELTA\",\"customLabel\":\"Log Writes\"}},{\"id\":\"6\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_DATA_FSYNCS__DELTA\",\"customLabel\":\"Data fsyncs\"}},{\"id\":\"7\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_OS_LOG_FSYNCS__DELTA\",\"customLabel\":\"OS Log fsyncs\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Buffer-Pool-Activity",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Buffer Pool Activity",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Activity\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_PAGES_READ__DELTA\",\"customLabel\":\"Pages Read\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_PAGES_WRITTEN__DELTA\",\"customLabel\":\"Pages Written\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_PAGES_CREATED__DELTA\",\"customLabel\":\"Pages Created\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Buffer-Pool-Usage",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Buffer Pool Usage",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Usage\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"percentage\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_BUFFER_POOL_PAGES_DATA\",\"customLabel\":\"Data Pages\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_BUFFER_POOL_PAGES_FREE\",\"customLabel\":\"Free Pages\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Row-Lock-Time",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Row Lock Time",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Activity\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROW_LOCK_TIME__DELTA\",\"customLabel\":\"Lock Time\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Replication-Delay",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Replication Delay",
+      "visState": "{\"title\":\"New Visualization\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"Seconds_Behind_Master\",\"customLabel\":\"Seconds Behind Master\"}},{\"id\":\"4\",\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\"}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Row-Operations",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Row Operations",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Hit Ratio\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"stacked\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROWS_READ__DELTA\",\"customLabel\":\"Read\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROWS_INSERTED__DELTA\",\"customLabel\":\"Inserted\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROWS_UPDATED__DELTA\",\"customLabel\":\"Updated\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROWS_DELETED__DELTA\",\"customLabel\":\"Deleted\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Files-and-Tables",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Files and Tables",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Hit Ratio\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"overlap\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"5\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"TABLE_OPEN_CACHE\",\"customLabel\":\"Table Cache Size\"}},{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"OPEN_FILES\",\"customLabel\":\"Open Files\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"OPEN_TABLES\",\"customLabel\":\"Open Tables\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"OPENED_TABLES__DELTA\",\"customLabel\":\"Opened Tables\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Buffer-Pool-Hit-Ratio",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Buffer Pool Hit Ratio",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Hit Ratio\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"overlap\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"1\",\"type\":\"min\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_BUFFER_POOL_HIT_RATIO\",\"customLabel\":\"Hit Ratio\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"CONST_100\",\"customLabel\":\"(100%)\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-InnoDB-Row-Lock-Waits",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - InnoDB Row Lock Waits",
+      "visState": "{\"title\":\"MySQL - InnoDB Row Lock Time\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_ROW_LOCK_WAITS__DELTA\",\"customLabel\":\"Lock Waits\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Connections",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Connections",
+      "visState": "{\"title\":\"MySQL - Files and Tables\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"overlap\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"5\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"MAX_CONNECTIONS\",\"customLabel\":\"Max Connections\"}},{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"THREADS_CONNECTED\",\"customLabel\":\"Threads Connected\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"THREADS_RUNNING\",\"customLabel\":\"Threads Running\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"CONNECTION_ERRORS_MAX_CONNECTIONS__DELTA\",\"customLabel\":\"Max Connections Errors\"}},{\"id\":\"7\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"CONNECTION_ERRORS_INTERNAL__DELTA\",\"customLabel\":\"Internal Connection Errors\"}},{\"id\":\"8\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"ABORTED_CONNECTS__DELTA\",\"customLabel\":\"Aborted Connection Errors\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Query-Cache",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Query Cache",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Hit Ratio\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"overlap\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"QCACHE_QUERIES_IN_CACHE\",\"customLabel\":\"Queries in Cache\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"QCACHE_HITS__DELTA\",\"customLabel\":\"Hits\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"QCACHE_INSERTS__DELTA\",\"customLabel\":\"Inserts\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"QCACHE_NOT_CACHED__DELTA\",\"customLabel\":\"Queries not Cached\"}},{\"id\":\"7\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"QCACHE_LOWMEM_PRUNES__DELTA\",\"customLabel\":\"Lowmem Prunes\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-MyISAM-Indexes",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - MyISAM Indexes",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Activity\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"KEY_READS__DELTA\",\"customLabel\":\"Key Reads\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"KEY_WRITES__DELTA\",\"customLabel\":\"Key Writes\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"KEY_READ_REQUESTS__DELTA\",\"customLabel\":\"Read Requests\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"KEY_WRITE_REQUESTS__DELTA\",\"customLabel\":\"Write Requests\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Transaction-Handler",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Transaction Handler",
+      "visState": "{\"title\":\"MySQL - MyISAM Indexes\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"HANDLER_COMMIT__DELTA\",\"customLabel\":\"Commits\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"HANDLER_ROLLBACK__DELTA\",\"customLabel\":\"Rollbacks\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"HANDLER_SAVEPOINT__DELTA\",\"customLabel\":\"Savepoints\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"HANDLER_SAVEPOINT_ROLLBACK__DELTA\",\"customLabel\":\"Savepoint Rollbacks\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Table-Locks",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Table Locks",
+      "visState": "{\"title\":\"MySQL - InnoDB Buffer Pool Activity\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"TABLE_LOCKS_IMMEDIATE__DELTA\",\"customLabel\":\"Immediate Table Locks\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"TABLE_LOCKS_WAITED__DELTA\",\"customLabel\":\"Waited Table Locks\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SLOW_QUERIES__DELTA\",\"customLabel\":\"Slow Queries\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Temporary-Objects",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Temporary Objects",
+      "visState": "{\"title\":\"MySQL - MyISAM Indexes\",\"type\":\"line\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"showCircles\":true,\"smoothLines\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"CREATED_TMP_TABLES__DELTA\",\"customLabel\":\"Temp Tables Created\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"CREATED_TMP_DISK_TABLES__DELTA\",\"customLabel\":\"Temp Disk Tables Created\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"CREATED_TMP_FILES__DELTA\",\"customLabel\":\"Temp Files Created\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Sorts",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Sorts",
+      "visState": "{\"title\":\"MySQL - InnoDB Row Operations\",\"type\":\"area\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"smoothLines\":true,\"scale\":\"linear\",\"interpolate\":\"linear\",\"mode\":\"stacked\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{\"max\":100,\"min\":80}},\"aggs\":[{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SORT_SCAN__DELTA\",\"customLabel\":\"Scan\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SORT_ROWS__DELTA\",\"customLabel\":\"Rows\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SORT_RANGE__DELTA\",\"customLabel\":\"Range\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SORT_MERGE_PASSES__DELTA\",\"customLabel\":\"Merge Passes\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Server-List",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Server List",
+      "visState": "{\"title\":\"MySQL - Server List\",\"type\":\"table\",\"params\":{\"perPage\":10,\"showPartialRows\":false,\"showMeticsAtAllLevels\":false},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"@timestamp\",\"customLabel\":\"Last beat\"}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"bucket\",\"params\":{\"field\":\"beat.name\",\"size\":5,\"order\":\"asc\",\"orderBy\":\"_term\",\"customLabel\":\"Server Name\"}},{\"id\":\"3\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"INNODB_PAGE_SIZE\",\"customLabel\":\"InnoDB Page Size (bytes)\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  },
+  {
+    "_id": "MySQL-Select-Types",
+    "_type": "visualization",
+    "_source": {
+      "title": "MySQL - Select Types",
+      "visState": "{\"title\":\"MySQL - Select Types\",\"type\":\"histogram\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"scale\":\"linear\",\"mode\":\"stacked\",\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":true,\"setYExtents\":false,\"yAxis\":{}},\"aggs\":[{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"split\",\"params\":{\"field\":\"beat.name\",\"size\":10,\"order\":\"asc\",\"orderBy\":\"_term\",\"row\":true}},{\"id\":\"3\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{},\"customLabel\":\"Datetime\"}},{\"id\":\"1\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SELECT_FULL_JOIN__DELTA\",\"customLabel\":\"Full Join\"}},{\"id\":\"4\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SELECT_FULL_RANGE_JOIN__DELTA\",\"customLabel\":\"Full Range Join\"}},{\"id\":\"5\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SELECT_RANGE__DELTA\",\"customLabel\":\"Range\"}},{\"id\":\"6\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SELECT_RANGE_CHECK__DELTA\",\"customLabel\":\"Range Check\"}},{\"id\":\"7\",\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"SELECT_SCAN__DELTA\",\"customLabel\":\"Scan\"}}],\"listeners\":{}}",
+      "uiStateJSON": "{}",
+      "description": "",
+      "savedSearchId": "mysqlbeat",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[]}"
+      }
+    }
+  }
+]

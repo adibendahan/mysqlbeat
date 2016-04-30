@@ -69,6 +69,9 @@
         "INNODB_BUFFER_POOL_PAGES_TOTAL": {
           "type": "long"
         },
+        "INNODB_PAGE_SIZE": {
+          "type": "long"
+        },        
         "INNODB_DATA_FSYNCS__DELTA": {
           "type": "long"
         },
@@ -86,7 +89,7 @@
         },
         "INNODB_PAGES_CREATED__DELTA": {
           "type": "long"
-        },
+        },   
         "INNODB_PAGES_READ__DELTA": {
           "type": "long"
         },
@@ -105,6 +108,9 @@
         "INNODB_ROWS_UPDATED__DELTA": {
           "type": "long"
         },
+        "INNODB_ROW_LOCK_WAITS__DELTA": {
+          "type": "long"
+        },        
         "INNODB_ROW_LOCK_TIME__DELTA": {
           "type": "long"
         },
@@ -199,7 +205,8 @@
     }
   },
   "settings": {
-    "index.refresh_interval": "10s"
+    "index.refresh_interval": "10s",
+    "number_of_shards": 2  
   },
   "template": "mysqlbeat-*"
 }

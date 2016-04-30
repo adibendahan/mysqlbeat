@@ -17,7 +17,7 @@ mysqlbeat:
   #username: "mysqlbeat_user"
 
   # Defines the mysql password to use (base64 []byte)
-  #password64: [01, 02, 03]
+  #password64: [98, 88, 108, 122, 99, 87, 120, 105, 90, 87, 70, 48, 88, 51, 66, 104, 99, 51, 77, 61]
 
   # Defines the queries that will run  - the query below is an example
   queries: [ "SELECT  CONCAT(VARIABLE_NAME, '__DELTA') AS VARIABLE_NAME, VARIABLE_VALUE 
@@ -28,7 +28,7 @@ mysqlbeat:
                                          'INNODB_PAGES_WRITTEN', 'INNODB_ROWS_DELETED', 'INNODB_ROWS_INSERTED', 'INNODB_ROWS_READ', 'INNODB_ROWS_UPDATED', 'INNODB_ROW_LOCK_TIME', 
                                          'KEY_READS', 'KEY_READ_REQUESTS', 'KEY_WRITES', 'KEY_WRITE_REQUESTS', 'OPENED_TABLES', 'QCACHE_HITS', 'QCACHE_INSERTS', 'QCACHE_LOWMEM_PRUNES', 
                                          'QCACHE_NOT_CACHED', 'SELECT_FULL_JOIN', 'SELECT_FULL_RANGE_JOIN', 'SELECT_RANGE', 'SELECT_RANGE_CHECK', 'SELECT_SCAN', 'SLOW_QUERIES', 
-                                         'SORT_MERGE_PASSES', 'SORT_RANGE', 'SORT_ROWS', 'SORT_SCAN', 'TABLE_LOCKS_IMMEDIATE', 'TABLE_LOCKS_WAITED')
+                                         'SORT_MERGE_PASSES', 'SORT_RANGE', 'SORT_ROWS', 'SORT_SCAN', 'TABLE_LOCKS_IMMEDIATE', 'TABLE_LOCKS_WAITED', 'INNODB_ROW_LOCK_WAITS')
               UNION
               SELECT  VARIABLE_NAME, VARIABLE_VALUE 
               FROM    information_schema.GLOBAL_VARIABLES 
@@ -37,7 +37,7 @@ mysqlbeat:
               SELECT  VARIABLE_NAME, VARIABLE_VALUE 
               FROM    information_schema.GLOBAL_STATUS 
               WHERE   VARIABLE_NAME IN ('INNODB_BUFFER_POOL_PAGES_DATA', 'INNODB_BUFFER_POOL_PAGES_FREE', 'INNODB_BUFFER_POOL_PAGES_TOTAL', 'OPEN_FILES', 'OPEN_TABLES', 
-                                        'QCACHE_QUERIES_IN_CACHE', 'THREADS_CONNECTED', 'THREADS_RUNNING')
+                                        'QCACHE_QUERIES_IN_CACHE', 'THREADS_CONNECTED', 'THREADS_RUNNING', 'INNODB_PAGE_SIZE')
               UNION
               SELECT  'INNODB_BUFFER_POOL_HIT_RATIO' AS VARIABLE_NAME, 
                       INNODB_BUFFER_POOL_READ_REQUESTS.VARIABLE_VALUE  / (INNODB_BUFFER_POOL_READ_REQUESTS.VARIABLE_VALUE  + INNODB_BUFFER_POOL_READS.VARIABLE_VALUE) * 100 AS VARIABLE_VALUE 
