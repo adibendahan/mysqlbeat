@@ -13,7 +13,7 @@ type MysqlbeatConfig struct {
 	Port          string   `yaml:"port"`
 	Username      string   `yaml:"username"`
 	Password64    []byte   `yaml:"password64"`
-	Queries       []string `yaml:"quieries"`
-	QueryTypes    []string `yaml:"quierytypes"`
+	Queries       []string `yaml:"queries"`
+	QueryTypes    []string `yaml:"querytypes"`
 	DeltaWildCard string   `yaml:"deltawildcard"`
 }
