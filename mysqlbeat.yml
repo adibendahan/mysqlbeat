@@ -16,8 +16,11 @@ mysqlbeat:
   # Defines the mysql user to use
   #username: "mysqlbeat_user"
 
-  # Defines the mysql password to use (base64 []byte)
-  #password64: [98, 88, 108, 122, 99, 87, 120, 105, 90, 87, 70, 48, 88, 51, 66, 104, 99, 51, 77, 61]
+  # Defines the mysql password to use - option #1 - plain text
+  #password: "mysqlbeat_pass"
+
+  # Defines the mysql password to use - option #2 - AES encryption (see github.com/adibendahan/mysqlbeat-password-encrypter)
+  #encryptedpassword: "2321f38819cf693951e88f00cd82d3"
 
   # Defines the queries that will run  - the query below is an example
   queries: [ "SELECT  CONCAT(VARIABLE_NAME, '__DELTA') AS VARIABLE_NAME, VARIABLE_VALUE 
