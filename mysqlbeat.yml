@@ -20,7 +20,7 @@ mysqlbeat:
   #password: "mysqlbeat_pass"
 
   # Defines the mysql password to use - option #2 - AES encryption (see github.com/adibendahan/mysqlbeat-password-encrypter)
-  #encryptedpassword: "2321f38819cf693951e88f00cd82d3"
+  #encryptedpassword: "2321f38819cf693951e88f00cd82"
 
   # Defines the queries that will run  - the query below is an example
   queries: [ "SELECT  CONCAT(VARIABLE_NAME, '__DELTA') AS VARIABLE_NAME, VARIABLE_VALUE 
