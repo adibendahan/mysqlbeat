@@ -8,12 +8,13 @@ type Config struct {
 }
 
 type MysqlbeatConfig struct {
-	Period        string   `yaml:"period"`
-	Hostname      string   `yaml:"hostname"`
-	Port          string   `yaml:"port"`
-	Username      string   `yaml:"username"`
-	Password64    []byte   `yaml:"password64"`
-	Queries       []string `yaml:"queries"`
-	QueryTypes    []string `yaml:"querytypes"`
-	DeltaWildCard string   `yaml:"deltawildcard"`
+	Period            string   `yaml:"period"`
+	Hostname          string   `yaml:"hostname"`
+	Port              string   `yaml:"port"`
+	Username          string   `yaml:"username"`
+	Password          string   `yaml:"password"`
+	EncryptedPassword string   `yaml:"encryptedpassword"`
+	Queries           []string `yaml:"queries"`
+	QueryTypes        []string `yaml:"querytypes"`
+	DeltaWildCard     string   `yaml:"deltawildcard"`
 }

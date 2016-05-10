@@ -1,8 +1,10 @@
 package beater
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"database/sql"
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"strconv"
@@ -29,7 +31,7 @@ type Mysqlbeat struct {
 	port          string
 	username      string
 	password      string
-	password64    []byte
+	passwordAES   string
 	queries       []string
 	querytypes    []string
 	deltawildcard string
@@ -37,6 +39,18 @@ type Mysqlbeat struct {
 	oldvalues    common.MapStr
 	oldvaluesage common.MapStr
 }
+
+var (
+	commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+)
+
+const (
+	// secret length must be 16, 24 or 32, corresponding to the AES-128, AES-192 or AES-256 algorithms
+	// you should compile your mysqlbeat with a unique secret and hide it (don't leave it in the code after compiled)
+	// you can encrypt your password with github.com/adibendahan/mysqlbeat-password-encrypter just update your secret
+	// (and commonIV if you choose to change it) and compile.
+	secret = "github.com/adibendahan/mysqlbeat"
+)
 
 // New Creates beater
 func New() *Mysqlbeat {
@@ -57,11 +71,6 @@ func (bt *Mysqlbeat) Config(b *beat.Beat) error {
 	}
 
 	return nil
-}
-
-// base64Decode returns text decoded with base64
-func base64Decode(src []byte) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(string(src))
 }
 
 // roundF2I is a function that returns a rounded int64 from a float64
@@ -86,11 +95,8 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 
 	if len(bt.beatConfig.Mysqlbeat.Queries) > 0 {
 
-		oldvalues := common.MapStr{"mysqlbeat": "init"}
-		oldvaluesage := common.MapStr{"mysqlbeat": "init"}
-
-		bt.oldvalues = oldvalues
-		bt.oldvaluesage = oldvaluesage
+		bt.oldvalues = common.MapStr{"mysqlbeat": "init"}
+		bt.oldvaluesage = common.MapStr{"mysqlbeat": "init"}
 
 		// Setting default period if not set
 		if bt.beatConfig.Mysqlbeat.Period == "" {
@@ -135,17 +141,25 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 			bt.beatConfig.Mysqlbeat.Username = "mysqlbeat_user"
 		}
 
-		pwdbyte, err := base64Decode(bt.beatConfig.Mysqlbeat.Password64)
+		if bt.beatConfig.Mysqlbeat.Password == "" && bt.beatConfig.Mysqlbeat.EncryptedPassword == "" {
+			logp.Info("Password not selected, proceeding with 'mysqlbeat_pass' as default")
+			bt.beatConfig.Mysqlbeat.Password = "mysqlbeat_pass"
 
-		if err != nil {
-			return err
 		}
 
-		if string(pwdbyte) != "" {
-			bt.password = string(pwdbyte)
-		} else {
-			bt.password = "mysqlbeat_pass"
-			logp.Info("Password not selected, proceeding with 'mysqlbeat_pass' as default")
+		if bt.beatConfig.Mysqlbeat.Password != "" {
+			bt.password = bt.beatConfig.Mysqlbeat.Password
+		} else if bt.beatConfig.Mysqlbeat.EncryptedPassword != "" {
+
+			c, err := aes.NewCipher([]byte(secret))
+			if err != nil {
+				return err
+			}
+			cfbdec := cipher.NewCFBDecrypter(c, commonIV)
+			chipertext, _ := hex.DecodeString(bt.beatConfig.Mysqlbeat.EncryptedPassword)
+			plaintextCopy := make([]byte, len(chipertext))
+			cfbdec.XORKeyStream(plaintextCopy, chipertext)
+			bt.password = string(plaintextCopy)
 		}
 
 		bt.hostname = bt.beatConfig.Mysqlbeat.Hostname
@@ -191,6 +205,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
 	for index, queryStr := range bt.queries {
 
@@ -493,7 +508,6 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 			return err
 		}
 	}
-	defer db.Close()
 
 	return nil
 }
