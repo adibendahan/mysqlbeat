@@ -1,6 +1,6 @@
 # mysqlbeat
-Fully customizable Beat for MySQL server - now with default configuration to build performance dashboard.
-This beat can also ship the results of any query defined on the config file to elastic.
+Fully customizable Beat for MySQL server - this beat can ship the results of any query defined on the config file to Elastic.
+
 
 ## Current status
  This project is in beta stage. In fact this is the first time ever I wrote go code.
@@ -14,7 +14,8 @@ This beat can also ship the results of any query defined on the config file to e
  * `show-slave-delay` will only send the "Seconds_Behind_Master" column from `SHOW SLAVE STATUS;`
 * Any column that ends with the delatwildcard (default is __DELTA) will send delta results, extremely useful for server counters.
   `((newval - oldval)/timediff.Seconds())`
- 
+* MySQL Performance Dashboard (more details below)
+
 ## How to Build
 
 mysqlbeat uses Glide for dependency management. To install glide see: https://github.com/Masterminds/glide
@@ -27,16 +28,18 @@ $ go build
 
 Edit mysqlbeat configuration in ```mysqlbeat.yml``` .
 You can:
-* Add queries to the `queries` array
-* Add query types to the `querytypes` array
-* Define user/pass to connect to the MySQL - MAKE SURE THE USER ONLY HAS PERMISSIONS TO RUN THE QUERY DESIRED AND NOTHING ELSE.
-* Password64 should be saved as a base64 []byte array, to generate the array you can use the following: https://play.golang.org/p/L8Z0lFnzCy (make sure to add a comma between all array numbers)
-* Define the column wild card for delta columns
+ * Add queries to the `queries` array
+ * Add query types to the `querytypes` array
+ * Define Username/Password to connect to the MySQL
+ * Define the column wild card for delta columns
+ * Password can be saved in clear text/AES encryption
 
 If you choose to use the mysqlbeat as is, just run the following on your MySQL Server:
   ```
    GRANT REPLICATION CLIENT, PROCESS ON *.* TO 'mysqlbeat_user'@'%' IDENTIFIED BY 'mysqlbeat_pass';
   ```
+
+Notes on password encryption: Before you compile your own mysqlbeat, you should put a new secret in the code (defined as a const), secret length must be 16, 24 or 32, corresponding to the AES-128, AES-192 or AES-256 algorithm. I recommend deleting the secret from the source code after you have your compiled mysqlbeat. You can encrypt your password with [mysqlbeat-password-encrypter](github.com/adibendahan/mysqlbeat-password-encrypter, "github.com/adibendahan/mysqlbeat-password-encrypter") just update your secret (and commonIV if you choose to change it) and compile.
 
 ## Template
  The default template is provided, if you add any queries you should update the template accordingly.
