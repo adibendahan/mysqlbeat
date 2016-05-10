@@ -16,5 +16,5 @@ type MysqlbeatConfig struct {
 	EncryptedPassword string   `yaml:"encryptedpassword"`
 	Queries           []string `yaml:"queries"`
 	QueryTypes        []string `yaml:"querytypes"`
-	DeltaWildCard     string   `yaml:"deltawildcard"`
+	DeltaWildcard     string   `yaml:"deltawildcard"`
 }

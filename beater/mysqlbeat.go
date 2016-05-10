@@ -33,11 +33,11 @@ type Mysqlbeat struct {
 	password      string
 	passwordAES   string
 	queries       []string
-	querytypes    []string
-	deltawildcard string
+	queryTypes    []string
+	deltaWildcard string
 
-	oldvalues    common.MapStr
-	oldvaluesage common.MapStr
+	oldValues    common.MapStr
+	oldValuesAge common.MapStr
 }
 
 var (
@@ -50,6 +50,13 @@ const (
 	// you can encrypt your password with github.com/adibendahan/mysqlbeat-password-encrypter just update your secret
 	// (and commonIV if you choose to change it) and compile.
 	secret = "github.com/adibendahan/mysqlbeat"
+
+	defaultPeriod        = "10s"
+	defaultHostname      = "127.0.0.1"
+	defaultPort          = "3306"
+	defaultUsername      = "mysqlbeat_user"
+	defaultPassword      = "mysqlbeat_pass"
+	defaultDeltaWildcard = "__DELTA"
 )
 
 // New Creates beater
@@ -66,6 +73,7 @@ func (bt *Mysqlbeat) Config(b *beat.Beat) error {
 
 	// Load beater beatConfig
 	err := cfgfile.Read(&bt.beatConfig, "")
+
 	if err != nil {
 		return fmt.Errorf("Error reading config file: %v", err)
 	}
@@ -91,87 +99,93 @@ func roundF2I(val float64, roundOn float64) (newVal int64) {
 // Setup is a function to setup all beat config & info into the beat struct
 func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 
-	var err error
+	if len(bt.beatConfig.Mysqlbeat.Queries) < 1 {
+		err := fmt.Errorf("there are no queries to execute")
+		return err
+	}
 
-	if len(bt.beatConfig.Mysqlbeat.Queries) > 0 {
+	// init the oldValues and oldValuesAge array
+	bt.oldValues = common.MapStr{"mysqlbeat": "init"}
+	bt.oldValuesAge = common.MapStr{"mysqlbeat": "init"}
 
-		bt.oldvalues = common.MapStr{"mysqlbeat": "init"}
-		bt.oldvaluesage = common.MapStr{"mysqlbeat": "init"}
+	if len(bt.beatConfig.Mysqlbeat.Queries) != len(bt.beatConfig.Mysqlbeat.QueryTypes) {
+		err := fmt.Errorf("error on config file, queries array length != queryTypes array length (each query should have a corresponding type on the same index)")
+		return err
+	}
 
-		// Setting default period if not set
-		if bt.beatConfig.Mysqlbeat.Period == "" {
-			bt.beatConfig.Mysqlbeat.Period = "10s"
-		}
+	// Setting defaults for missing config
+	if bt.beatConfig.Mysqlbeat.Period == "" {
+		logp.Info("Period not selected, proceeding with '%v' as default", defaultPeriod)
+		bt.beatConfig.Mysqlbeat.Period = defaultPeriod
+	}
 
-		if bt.beatConfig.Mysqlbeat.DeltaWildCard == "" {
-			bt.beatConfig.Mysqlbeat.DeltaWildCard = "__DELTA"
-		}
+	if bt.beatConfig.Mysqlbeat.Hostname == "" {
+		logp.Info("Hostname not selected, proceeding with '%v' as default", defaultHostname)
+		bt.beatConfig.Mysqlbeat.Hostname = defaultHostname
+	}
 
-		if len(bt.beatConfig.Mysqlbeat.Queries) != len(bt.beatConfig.Mysqlbeat.QueryTypes) {
-			err := fmt.Errorf("error on config file, queries array length != querytypes array length (each query should have a corresponding type on the same index)")
-			return err
-		}
+	if bt.beatConfig.Mysqlbeat.Port == "" {
+		logp.Info("Port not selected, proceeding with '%v' as default", defaultPort)
+		bt.beatConfig.Mysqlbeat.Port = defaultPort
+	}
 
-		bt.queries = bt.beatConfig.Mysqlbeat.Queries
-		bt.querytypes = bt.beatConfig.Mysqlbeat.QueryTypes
+	if bt.beatConfig.Mysqlbeat.Username == "" {
+		logp.Info("Username not selected, proceeding with '%v' as default", defaultUsername)
+		bt.beatConfig.Mysqlbeat.Username = defaultUsername
+	}
 
-		logp.Info("Total # of queries to execute: %d", len(bt.queries))
+	if bt.beatConfig.Mysqlbeat.Password == "" && bt.beatConfig.Mysqlbeat.EncryptedPassword == "" {
+		logp.Info("Password not selected, proceeding with default password")
+		bt.beatConfig.Mysqlbeat.Password = defaultPassword
+	}
 
-		for index, queryStr := range bt.queries {
-			logp.Info("Query #%d (type: %s): %s", index+1, bt.querytypes[index], queryStr)
-		}
+	if bt.beatConfig.Mysqlbeat.DeltaWildcard == "" {
+		logp.Info("DeltaWildcard not selected, proceeding with '%v' as default", defaultDeltaWildcard)
+		bt.beatConfig.Mysqlbeat.DeltaWildcard = defaultDeltaWildcard
+	}
 
-		bt.period, err = time.ParseDuration(bt.beatConfig.Mysqlbeat.Period)
+	// Parse the Period string
+	var durationParseError error
+	bt.period, durationParseError = time.ParseDuration(bt.beatConfig.Mysqlbeat.Period)
+	if durationParseError != nil {
+		return durationParseError
+	}
+
+	if bt.beatConfig.Mysqlbeat.Password != "" {
+		bt.password = bt.beatConfig.Mysqlbeat.Password
+	} else if bt.beatConfig.Mysqlbeat.EncryptedPassword != "" {
+
+		aesCipher, err := aes.NewCipher([]byte(secret))
+
 		if err != nil {
 			return err
 		}
 
-		if bt.beatConfig.Mysqlbeat.Hostname == "" {
-			logp.Info("Hostname not selected, proceeding with '127.0.0.1' as default")
-			bt.beatConfig.Mysqlbeat.Hostname = "127.0.0.1"
+		cfbDecrypter := cipher.NewCFBDecrypter(aesCipher, commonIV)
+		chiperText, err := hex.DecodeString(bt.beatConfig.Mysqlbeat.EncryptedPassword)
+
+		if err != nil {
+			return err
 		}
 
-		if bt.beatConfig.Mysqlbeat.Port == "" {
-			logp.Info("Port not selected, proceeding with '3306' as default")
-			bt.beatConfig.Mysqlbeat.Port = "3306"
-		}
-
-		if bt.beatConfig.Mysqlbeat.Username == "" {
-			logp.Info("Username not selected, proceeding with 'mysqlbeat_user' as default")
-			bt.beatConfig.Mysqlbeat.Username = "mysqlbeat_user"
-		}
-
-		if bt.beatConfig.Mysqlbeat.Password == "" && bt.beatConfig.Mysqlbeat.EncryptedPassword == "" {
-			logp.Info("Password not selected, proceeding with 'mysqlbeat_pass' as default")
-			bt.beatConfig.Mysqlbeat.Password = "mysqlbeat_pass"
-
-		}
-
-		if bt.beatConfig.Mysqlbeat.Password != "" {
-			bt.password = bt.beatConfig.Mysqlbeat.Password
-		} else if bt.beatConfig.Mysqlbeat.EncryptedPassword != "" {
-
-			c, err := aes.NewCipher([]byte(secret))
-			if err != nil {
-				return err
-			}
-			cfbdec := cipher.NewCFBDecrypter(c, commonIV)
-			chipertext, _ := hex.DecodeString(bt.beatConfig.Mysqlbeat.EncryptedPassword)
-			plaintextCopy := make([]byte, len(chipertext))
-			cfbdec.XORKeyStream(plaintextCopy, chipertext)
-			bt.password = string(plaintextCopy)
-		}
-
-		bt.hostname = bt.beatConfig.Mysqlbeat.Hostname
-		bt.port = bt.beatConfig.Mysqlbeat.Port
-		bt.username = bt.beatConfig.Mysqlbeat.Username
-		bt.deltawildcard = bt.beatConfig.Mysqlbeat.DeltaWildCard
-
-	} else {
-
-		err := fmt.Errorf("there are no queries to execute")
-		return err
+		plaintextCopy := make([]byte, len(chiperText))
+		cfbDecrypter.XORKeyStream(plaintextCopy, chiperText)
+		bt.password = string(plaintextCopy)
 	}
+
+	// Save config values to the bt
+	bt.hostname = bt.beatConfig.Mysqlbeat.Hostname
+	bt.port = bt.beatConfig.Mysqlbeat.Port
+	bt.username = bt.beatConfig.Mysqlbeat.Username
+	bt.queries = bt.beatConfig.Mysqlbeat.Queries
+	bt.queryTypes = bt.beatConfig.Mysqlbeat.QueryTypes
+	bt.deltaWildcard = bt.beatConfig.Mysqlbeat.DeltaWildcard
+
+	logp.Info("Total # of queries to execute: %d", len(bt.queries))
+	for index, queryStr := range bt.queries {
+		logp.Info("Query #%d (type: %s): %s", index+1, bt.queryTypes[index], queryStr)
+	}
+
 	return nil
 }
 
@@ -195,7 +209,7 @@ func (bt *Mysqlbeat) Run(b *beat.Beat) error {
 	}
 }
 
-// readData is a function that connects to the mysql, runs the query and returns the data
+// beat is a function that connects to the mysql, runs the query and returns the data
 func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 	connString := bt.username + ":" + bt.password + "@tcp(" + bt.hostname + ":" + bt.port + ")/"
@@ -239,7 +253,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 			currentRow++
 
-			if bt.querytypes[index] == "single-row" && currentRow == 1 {
+			if bt.queryTypes[index] == "single-row" && currentRow == 1 {
 
 				err = rows.Scan(scanArgs...)
 				if err != nil {
@@ -266,32 +280,32 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 						}
 					}
 
-					if strings.HasSuffix(strColName, bt.deltawildcard) {
+					if strings.HasSuffix(strColName, bt.deltaWildcard) {
 
 						var exists bool
-						_, exists = bt.oldvalues[strColName]
+						_, exists = bt.oldValues[strColName]
 
 						if !exists {
 
-							bt.oldvaluesage[strColName] = dtNow
+							bt.oldValuesAge[strColName] = dtNow
 
 							if strColType == "string" {
-								bt.oldvalues[strColName] = strColValue
+								bt.oldValues[strColName] = strColValue
 							} else if strColType == "int" {
-								bt.oldvalues[strColName] = nColValue
+								bt.oldValues[strColName] = nColValue
 							} else if strColType == "float" {
-								bt.oldvalues[strColName] = fColValue
+								bt.oldValues[strColName] = fColValue
 							}
 
 						} else {
 
-							if dtOld, ok := bt.oldvaluesage[strColName].(time.Time); ok {
+							if dtOld, ok := bt.oldValuesAge[strColName].(time.Time); ok {
 								delta := dtNow.Sub(dtOld)
 
 								if strColType == "int" {
 									var calcVal int64
 
-									oldVal, _ := bt.oldvalues[strColName].(int64)
+									oldVal, _ := bt.oldValues[strColName].(int64)
 
 									if nColValue > oldVal {
 										var devRes float64
@@ -303,13 +317,13 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 									event[strColName] = calcVal
 
-									bt.oldvalues[strColName] = nColValue
-									bt.oldvaluesage[strColName] = dtNow
+									bt.oldValues[strColName] = nColValue
+									bt.oldValuesAge[strColName] = dtNow
 
 								} else if strColType == "float" {
 									var calcVal float64
 
-									oldVal, _ := bt.oldvalues[strColName].(float64)
+									oldVal, _ := bt.oldValues[strColName].(float64)
 
 									if fColValue > oldVal {
 										calcVal = (fColValue - oldVal) / float64(delta.Seconds())
@@ -319,8 +333,8 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 									event[strColName] = calcVal
 
-									bt.oldvalues[strColName] = fColValue
-									bt.oldvaluesage[strColName] = dtNow
+									bt.oldValues[strColName] = fColValue
+									bt.oldValuesAge[strColName] = dtNow
 								} else {
 									event[strColName] = strColValue
 								}
@@ -340,7 +354,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 				rows.Close()
 
-			} else if bt.querytypes[index] == "two-columns" {
+			} else if bt.queryTypes[index] == "two-columns" {
 
 				err = rows.Scan(scanArgs...)
 
@@ -366,32 +380,32 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 					}
 				}
 
-				if strings.HasSuffix(strColName, bt.deltawildcard) {
+				if strings.HasSuffix(strColName, bt.deltaWildcard) {
 
 					var exists bool
-					_, exists = bt.oldvalues[strColName]
+					_, exists = bt.oldValues[strColName]
 
 					if !exists {
 
-						bt.oldvaluesage[strColName] = dtNow
+						bt.oldValuesAge[strColName] = dtNow
 
 						if strColType == "string" {
-							bt.oldvalues[strColName] = strColValue
+							bt.oldValues[strColName] = strColValue
 						} else if strColType == "int" {
-							bt.oldvalues[strColName] = nColValue
+							bt.oldValues[strColName] = nColValue
 						} else if strColType == "float" {
-							bt.oldvalues[strColName] = fColValue
+							bt.oldValues[strColName] = fColValue
 						}
 
 					} else {
 
-						if dtOld, ok := bt.oldvaluesage[strColName].(time.Time); ok {
+						if dtOld, ok := bt.oldValuesAge[strColName].(time.Time); ok {
 							delta := dtNow.Sub(dtOld)
 
 							if strColType == "int" {
 								var calcVal int64
 
-								oldVal, _ := bt.oldvalues[strColName].(int64)
+								oldVal, _ := bt.oldValues[strColName].(int64)
 
 								if nColValue > oldVal {
 									var devRes float64
@@ -404,15 +418,15 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 								event[strColName] = calcVal
 
-								bt.oldvalues[strColName] = nColValue
-								bt.oldvaluesage[strColName] = dtNow
+								bt.oldValues[strColName] = nColValue
+								bt.oldValuesAge[strColName] = dtNow
 
 								//logp.Info("DEBUG: o: %d n: %d time diff: %d calc: %d", oldVal, nColValue, int64(delta.Seconds()), calcVal)
 
 							} else if strColType == "float" {
 								var calcVal float64
 
-								oldVal, _ := bt.oldvalues[strColName].(float64)
+								oldVal, _ := bt.oldValues[strColName].(float64)
 
 								if fColValue > oldVal {
 									calcVal = (fColValue - oldVal) / float64(delta.Seconds())
@@ -422,8 +436,8 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 								event[strColName] = calcVal
 
-								bt.oldvalues[strColName] = fColValue
-								bt.oldvaluesage[strColName] = dtNow
+								bt.oldValues[strColName] = fColValue
+								bt.oldValuesAge[strColName] = dtNow
 
 							} else {
 								event[strColName] = strColValue
@@ -440,7 +454,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 					}
 				}
 
-			} else if bt.querytypes[index] == "multiple-rows" {
+			} else if bt.queryTypes[index] == "multiple-rows" {
 				mevent := common.MapStr{
 					"@timestamp": common.Time(time.Now()),
 					"type":       b.Name,
@@ -473,7 +487,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
 				b.Events.PublishEvent(mevent)
 				logp.Info("Event sent")
-			} else if bt.querytypes[index] == "show-slave-delay" && currentRow == 1 {
+			} else if bt.queryTypes[index] == "show-slave-delay" && currentRow == 1 {
 
 				err = rows.Scan(scanArgs...)
 				if err != nil {
@@ -499,7 +513,7 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 			}
 		}
 
-		if bt.querytypes[index] != "multiple-rows" && len(event) > 2 {
+		if bt.queryTypes[index] != "multiple-rows" && len(event) > 2 {
 			b.Events.PublishEvent(event)
 			logp.Info("Event sent")
 		}
