@@ -81,21 +81,6 @@ func (bt *Mysqlbeat) Config(b *beat.Beat) error {
 	return nil
 }
 
-// roundF2I is a function that returns a rounded int64 from a float64
-func roundF2I(val float64, roundOn float64) (newVal int64) {
-	var round float64
-
-	digit := val
-	_, div := math.Modf(digit)
-	if div >= roundOn {
-		round = math.Ceil(digit)
-	} else {
-		round = math.Floor(digit)
-	}
-
-	return int64(round)
-}
-
 // Setup is a function to setup all beat config & info into the beat struct
 func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 
@@ -151,23 +136,19 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 		return durationParseError
 	}
 
+	// Handle password decryption and save in the bt
 	if bt.beatConfig.Mysqlbeat.Password != "" {
 		bt.password = bt.beatConfig.Mysqlbeat.Password
 	} else if bt.beatConfig.Mysqlbeat.EncryptedPassword != "" {
-
 		aesCipher, err := aes.NewCipher([]byte(secret))
-
 		if err != nil {
 			return err
 		}
-
 		cfbDecrypter := cipher.NewCFBDecrypter(aesCipher, commonIV)
 		chiperText, err := hex.DecodeString(bt.beatConfig.Mysqlbeat.EncryptedPassword)
-
 		if err != nil {
 			return err
 		}
-
 		plaintextCopy := make([]byte, len(chiperText))
 		cfbDecrypter.XORKeyStream(plaintextCopy, chiperText)
 		bt.password = string(plaintextCopy)
@@ -202,12 +183,23 @@ func (bt *Mysqlbeat) Run(b *beat.Beat) error {
 		}
 
 		err := bt.beat(b)
-
 		if err != nil {
 			return err
 		}
 	}
 }
+
+// Cleanup is a function that does nothing on this beat :)
+func (bt *Mysqlbeat) Cleanup(b *beat.Beat) error {
+	return nil
+}
+
+// Stop is a function that runs once the beat is stopped
+func (bt *Mysqlbeat) Stop() {
+	close(bt.done)
+}
+
+/// *** mysqlbeat methods ***///
 
 // beat is a function that connects to the mysql, runs the query and returns the data
 func (bt *Mysqlbeat) beat(b *beat.Beat) error {
@@ -526,12 +518,17 @@ func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 	return nil
 }
 
-// Cleanup is a function that does nothing on this beat :)
-func (bt *Mysqlbeat) Cleanup(b *beat.Beat) error {
-	return nil
-}
+// roundF2I is a function that returns a rounded int64 from a float64
+func roundF2I(val float64, roundOn float64) (newVal int64) {
+	var round float64
 
-// Stop is a function that runs once the beat is stopped
-func (bt *Mysqlbeat) Stop() {
-	close(bt.done)
+	digit := val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+
+	return int64(round)
 }
