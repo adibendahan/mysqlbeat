@@ -3,7 +3,7 @@ Fully customizable Beat for MySQL server - this beat can ship the results of any
 
 
 ## Current status
- This project is in beta stage. In fact this is the first time ever I wrote go code.
+ First beta release [available here](https://github.com/adibendahan/mysqlbeat/releases/tag/1.0.0).
 
 ## Features
 
