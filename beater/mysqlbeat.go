@@ -22,7 +22,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Mysqlbeat  is a struct tol hold the beat config & info
+// Mysqlbeat is a struct to hold the beat config & info
 type Mysqlbeat struct {
 	beatConfig    *config.Config
 	done          chan struct{}
@@ -51,12 +51,27 @@ const (
 	// (and commonIV if you choose to change it) and compile.
 	secret = "github.com/adibendahan/mysqlbeat"
 
+	// default values
 	defaultPeriod        = "10s"
 	defaultHostname      = "127.0.0.1"
 	defaultPort          = "3306"
 	defaultUsername      = "mysqlbeat_user"
 	defaultPassword      = "mysqlbeat_pass"
 	defaultDeltaWildcard = "__DELTA"
+
+	// query types values
+	queryTypeSingleRow    = "single-row"
+	queryTypeMultipleRows = "multiple-rows"
+	queryTypeTwoColumns   = "two-columns"
+	queryTypeSlaveDelay   = "show-slave-delay"
+
+	// special column names values
+	columnNameSlaveDelay = "Seconds_Behind_Master"
+
+	// column types values
+	columnTypeString = iota
+	columnTypeInt
+	columnTypeFloat
 )
 
 // New Creates beater
@@ -66,14 +81,13 @@ func New() *Mysqlbeat {
 	}
 }
 
-/// *** Beater interface methods ***///
+///*** Beater interface methods ***///
 
 // Config is a function to read config file
 func (bt *Mysqlbeat) Config(b *beat.Beat) error {
 
 	// Load beater beatConfig
 	err := cfgfile.Read(&bt.beatConfig, "")
-
 	if err != nil {
 		return fmt.Errorf("Error reading config file: %v", err)
 	}
@@ -88,10 +102,6 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 		err := fmt.Errorf("there are no queries to execute")
 		return err
 	}
-
-	// init the oldValues and oldValuesAge array
-	bt.oldValues = common.MapStr{"mysqlbeat": "init"}
-	bt.oldValuesAge = common.MapStr{"mysqlbeat": "init"}
 
 	if len(bt.beatConfig.Mysqlbeat.Queries) != len(bt.beatConfig.Mysqlbeat.QueryTypes) {
 		err := fmt.Errorf("error on config file, queries array length != queryTypes array length (each query should have a corresponding type on the same index)")
@@ -154,6 +164,10 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 		bt.password = string(plaintextCopy)
 	}
 
+	// init the oldValues and oldValuesAge array
+	bt.oldValues = common.MapStr{"mysqlbeat": "init"}
+	bt.oldValuesAge = common.MapStr{"mysqlbeat": "init"}
+
 	// Save config values to the bt
 	bt.hostname = bt.beatConfig.Mysqlbeat.Hostname
 	bt.port = bt.beatConfig.Mysqlbeat.Port
@@ -199,323 +213,360 @@ func (bt *Mysqlbeat) Stop() {
 	close(bt.done)
 }
 
-/// *** mysqlbeat methods ***///
+///*** mysqlbeat methods ***///
 
-// beat is a function that connects to the mysql, runs the query and returns the data
+// beat is a function that iterate over the query array, generate and publish events
 func (bt *Mysqlbeat) beat(b *beat.Beat) error {
 
-	connString := bt.username + ":" + bt.password + "@tcp(" + bt.hostname + ":" + bt.port + ")/"
+	// Build the MySQL connection string
+	connString := fmt.Sprintf("%v:%v@tcp(%v:%v)/", bt.username, bt.password, bt.hostname, bt.port)
 
 	db, err := sql.Open("mysql", connString)
-
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
+	// Create a two-columns event for later use
+	var twoColumnEvent common.MapStr
+
+LoopQueries:
 	for index, queryStr := range bt.queries {
-
+		// Log the query run time and run the query
+		dtNow := time.Now()
 		rows, err := db.Query(queryStr)
-
 		if err != nil {
 			return err
 		}
 
+		// Populate columns array
 		columns, err := rows.Columns()
 		if err != nil {
 			return err
 		}
 
-		values := make([]sql.RawBytes, len(columns))
-		scanArgs := make([]interface{}, len(values))
-
-		for i := range values {
-			scanArgs[i] = &values[i]
-		}
-
-		currentRow := 0
-		dtNow := time.Now()
-
-		event := common.MapStr{
-			"@timestamp": common.Time(dtNow),
-			"type":       b.Name,
-		}
-
-		for rows.Next() {
-
-			currentRow++
-
-			if bt.queryTypes[index] == "single-row" && currentRow == 1 {
-
-				err = rows.Scan(scanArgs...)
-				if err != nil {
-					return err
-				}
-
-				for i, col := range values {
-
-					strColName := string(columns[i])
-					strColValue := string(col)
-					strColType := "string"
-
-					nColValue, err := strconv.ParseInt(strColValue, 0, 64)
-
-					if err == nil {
-						strColType = "int"
-					}
-
-					fColValue, err := strconv.ParseFloat(strColValue, 64)
-
-					if err == nil {
-						if strColType == "string" {
-							strColType = "float"
-						}
-					}
-
-					if strings.HasSuffix(strColName, bt.deltaWildcard) {
-
-						var exists bool
-						_, exists = bt.oldValues[strColName]
-
-						if !exists {
-
-							bt.oldValuesAge[strColName] = dtNow
-
-							if strColType == "string" {
-								bt.oldValues[strColName] = strColValue
-							} else if strColType == "int" {
-								bt.oldValues[strColName] = nColValue
-							} else if strColType == "float" {
-								bt.oldValues[strColName] = fColValue
-							}
-
-						} else {
-
-							if dtOld, ok := bt.oldValuesAge[strColName].(time.Time); ok {
-								delta := dtNow.Sub(dtOld)
-
-								if strColType == "int" {
-									var calcVal int64
-
-									oldVal, _ := bt.oldValues[strColName].(int64)
-
-									if nColValue > oldVal {
-										var devRes float64
-										devRes = float64((nColValue - oldVal)) / float64(delta.Seconds())
-										calcVal = roundF2I(devRes, .5)
-									} else {
-										calcVal = 0
-									}
-
-									event[strColName] = calcVal
-
-									bt.oldValues[strColName] = nColValue
-									bt.oldValuesAge[strColName] = dtNow
-
-								} else if strColType == "float" {
-									var calcVal float64
-
-									oldVal, _ := bt.oldValues[strColName].(float64)
-
-									if fColValue > oldVal {
-										calcVal = (fColValue - oldVal) / float64(delta.Seconds())
-									} else {
-										calcVal = 0
-									}
-
-									event[strColName] = calcVal
-
-									bt.oldValues[strColName] = fColValue
-									bt.oldValuesAge[strColName] = dtNow
-								} else {
-									event[strColName] = strColValue
-								}
-							}
-						}
-					} else {
-						if strColType == "string" {
-							event[strColName] = strColValue
-						} else if strColType == "int" {
-							event[strColName] = nColValue
-						} else if strColType == "float" {
-							event[strColName] = fColValue
-						}
-					}
-
-				}
-
-				rows.Close()
-
-			} else if bt.queryTypes[index] == "two-columns" {
-
-				err = rows.Scan(scanArgs...)
-
-				if err != nil {
-					return err
-				}
-
-				strColName := string(values[0])
-				strColValue := string(values[1])
-				strColType := "string"
-
-				nColValue, err := strconv.ParseInt(strColValue, 0, 64)
-
-				if err == nil {
-					strColType = "int"
-				}
-
-				fColValue, err := strconv.ParseFloat(strColValue, 64)
-
-				if err == nil {
-					if strColType == "string" {
-						strColType = "float"
-					}
-				}
-
-				if strings.HasSuffix(strColName, bt.deltaWildcard) {
-
-					var exists bool
-					_, exists = bt.oldValues[strColName]
-
-					if !exists {
-
-						bt.oldValuesAge[strColName] = dtNow
-
-						if strColType == "string" {
-							bt.oldValues[strColName] = strColValue
-						} else if strColType == "int" {
-							bt.oldValues[strColName] = nColValue
-						} else if strColType == "float" {
-							bt.oldValues[strColName] = fColValue
-						}
-
-					} else {
-
-						if dtOld, ok := bt.oldValuesAge[strColName].(time.Time); ok {
-							delta := dtNow.Sub(dtOld)
-
-							if strColType == "int" {
-								var calcVal int64
-
-								oldVal, _ := bt.oldValues[strColName].(int64)
-
-								if nColValue > oldVal {
-									var devRes float64
-									devRes = float64((nColValue - oldVal)) / float64(delta.Seconds())
-									calcVal = roundF2I(devRes, .5)
-
-								} else {
-									calcVal = 0
-								}
-
-								event[strColName] = calcVal
-
-								bt.oldValues[strColName] = nColValue
-								bt.oldValuesAge[strColName] = dtNow
-
-								//logp.Info("DEBUG: o: %d n: %d time diff: %d calc: %d", oldVal, nColValue, int64(delta.Seconds()), calcVal)
-
-							} else if strColType == "float" {
-								var calcVal float64
-
-								oldVal, _ := bt.oldValues[strColName].(float64)
-
-								if fColValue > oldVal {
-									calcVal = (fColValue - oldVal) / float64(delta.Seconds())
-								} else {
-									calcVal = 0
-								}
-
-								event[strColName] = calcVal
-
-								bt.oldValues[strColName] = fColValue
-								bt.oldValuesAge[strColName] = dtNow
-
-							} else {
-								event[strColName] = strColValue
-							}
-						}
-					}
-				} else {
-					if strColType == "string" {
-						event[strColName] = strColValue
-					} else if strColType == "int" {
-						event[strColName] = nColValue
-					} else if strColType == "float" {
-						event[strColName] = fColValue
-					}
-				}
-
-			} else if bt.queryTypes[index] == "multiple-rows" {
-				mevent := common.MapStr{
-					"@timestamp": common.Time(time.Now()),
-					"type":       b.Name,
-				}
-
-				err = rows.Scan(scanArgs...)
-
-				if err != nil {
-					return err
-				}
-
-				for i, col := range values {
-
-					strColValue := string(col)
-					n, err := strconv.ParseInt(strColValue, 0, 64)
-
-					if err == nil {
-						mevent[columns[i]] = n
-					} else {
-						f, err := strconv.ParseFloat(strColValue, 64)
-
-						if err == nil {
-							mevent[columns[i]] = f
-						} else {
-							mevent[columns[i]] = strColValue
-						}
-					}
-
-				}
-
-				b.Events.PublishEvent(mevent)
-				logp.Info("Event sent")
-			} else if bt.queryTypes[index] == "show-slave-delay" && currentRow == 1 {
-
-				err = rows.Scan(scanArgs...)
-				if err != nil {
-					return err
-				}
-
-				for i, col := range values {
-
-					if string(columns[i]) == "Seconds_Behind_Master" {
-
-						strColName := string(columns[i])
-						strColValue := string(col)
-
-						nColValue, err := strconv.ParseInt(strColValue, 0, 64)
-
-						if err == nil {
-							event[strColName] = nColValue
-						}
-					}
-					rows.Close()
-
-				}
+		// Populate the two-columns event
+		if bt.queryTypes[index] == queryTypeTwoColumns {
+			twoColumnEvent = common.MapStr{
+				"@timestamp": common.Time(dtNow),
+				"type":       queryTypeTwoColumns,
 			}
 		}
 
-		if bt.queryTypes[index] != "multiple-rows" && len(event) > 2 {
-			b.Events.PublishEvent(event)
-			logp.Info("Event sent")
+	LoopRows:
+		for rows.Next() {
+
+			switch bt.queryTypes[index] {
+			case queryTypeSingleRow, queryTypeSlaveDelay:
+				// Generate an event from the current row
+				event, err := bt.generateEventFromRow(rows, columns, bt.queryTypes[index], dtNow)
+
+				if err != nil {
+					logp.Err("Query #%v error generating event from rows: %v", index, err)
+				} else if event != nil {
+					b.Events.PublishEvent(event)
+					logp.Info("%v event sent", bt.queryTypes[index])
+				}
+				// breaking after the first row
+				break LoopRows
+
+			case queryTypeMultipleRows:
+				// Generate an event from the current row
+				event, err := bt.generateEventFromRow(rows, columns, bt.queryTypes[index], dtNow)
+
+				if err != nil {
+					logp.Err("Query #%v error generating event from rows: %v", index, err)
+					break LoopRows
+				} else if event != nil {
+					b.Events.PublishEvent(event)
+					logp.Info("%v event sent", bt.queryTypes[index])
+				}
+
+				// Move to the next row
+				continue LoopRows
+
+			case queryTypeTwoColumns:
+				// append current row to the two-columns event
+				err := bt.appendRowToEvent(twoColumnEvent, rows, columns, dtNow)
+
+				if err != nil {
+					logp.Err("Query #%v error appending two-columns event: %v", index, err)
+					break LoopRows
+				}
+
+				// Move to the next row
+				continue LoopRows
+			}
 		}
 
+		// If the two-columns event has data, publish it
+		if bt.queryTypes[index] == queryTypeTwoColumns && len(twoColumnEvent) > 2 {
+			b.Events.PublishEvent(twoColumnEvent)
+			logp.Info("%v event sent", queryTypeTwoColumns)
+			twoColumnEvent = nil
+		}
+
+		rows.Close()
 		if err = rows.Err(); err != nil {
-			return err
+			logp.Err("Query #%v error closing rows: %v", index, err)
+			continue LoopQueries
 		}
 	}
 
+	// Great success!
 	return nil
+}
+
+// appendRowToEvent appends the two-column event the current row data
+func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, columns []string, rowAge time.Time) error {
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(columns))
+
+	// Copy the references into such a []interface{} for row.Scan
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	// Get RawBytes from data
+	err := row.Scan(scanArgs...)
+	if err != nil {
+		return err
+	}
+
+	// First column is the name, second is the value
+	strColName := string(values[0])
+	strColValue := string(values[1])
+	strColType := columnTypeString
+
+	// Try to parse the value to an int64
+	nColValue, err := strconv.ParseInt(strColValue, 0, 64)
+	if err == nil {
+		strColType = columnTypeInt
+	}
+
+	// Try to parse the value to a float64
+	fColValue, err := strconv.ParseFloat(strColValue, 64)
+	if err == nil {
+		// If it's not already an established int64, set type to float
+		if strColType == columnTypeString {
+			strColType = columnTypeFloat
+		}
+	}
+
+	// If the column name ends with the deltaWildcard
+	if strings.HasSuffix(strColName, bt.deltaWildcard) {
+		var exists bool
+		_, exists = bt.oldValues[strColName]
+
+		// If an older value doesn't exist
+		if !exists {
+			// Save the current value in the oldValues array
+			bt.oldValuesAge[strColName] = rowAge
+
+			if strColType == columnTypeString {
+				bt.oldValues[strColName] = strColValue
+			} else if strColType == columnTypeInt {
+				bt.oldValues[strColName] = nColValue
+			} else if strColType == columnTypeFloat {
+				bt.oldValues[strColName] = fColValue
+			}
+		} else {
+			// If found the old value's age
+			if dtOldAge, ok := bt.oldValuesAge[strColName].(time.Time); ok {
+				delta := rowAge.Sub(dtOldAge)
+
+				if strColType == columnTypeInt {
+					var calcVal int64
+
+					// Get old value
+					oldVal, _ := bt.oldValues[strColName].(int64)
+					if nColValue > oldVal {
+						// Calculate the delta
+						devResult := float64((nColValue - oldVal)) / float64(delta.Seconds())
+						// Round the calculated result back to an int64
+						calcVal = roundF2I(devResult, .5)
+					} else {
+						calcVal = 0
+					}
+
+					// Add the delta value to the event
+					event[strColName] = calcVal
+
+					// Save current values as old values
+					bt.oldValues[strColName] = nColValue
+					bt.oldValuesAge[strColName] = rowAge
+				} else if strColType == columnTypeFloat {
+					var calcVal float64
+
+					// Get old value
+					oldVal, _ := bt.oldValues[strColName].(float64)
+					if fColValue > oldVal {
+						// Calculate the delta
+						calcVal = (fColValue - oldVal) / float64(delta.Seconds())
+					} else {
+						calcVal = 0
+					}
+
+					// Add the delta value to the event
+					event[strColName] = calcVal
+
+					// Save current values as old values
+					bt.oldValues[strColName] = fColValue
+					bt.oldValuesAge[strColName] = rowAge
+				} else {
+					event[strColName] = strColValue
+				}
+			}
+		}
+	} else { // Not a delta column, add the value to the event as is
+		if strColType == columnTypeString {
+			event[strColName] = strColValue
+		} else if strColType == columnTypeInt {
+			event[strColName] = nColValue
+		} else if strColType == columnTypeFloat {
+			event[strColName] = fColValue
+		}
+	}
+
+	// Great success!
+	return nil
+}
+
+// generateEventFromRow creates a new event from the row data and returns it
+func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, queryType string, rowAge time.Time) (common.MapStr, error) {
+
+	// Make a slice for the values
+	values := make([]sql.RawBytes, len(columns))
+
+	// Copy the references into such a []interface{} for row.Scan
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	// Create the event and populate it
+	event := common.MapStr{
+		"@timestamp": common.Time(rowAge),
+		"type":       queryType,
+	}
+
+	// Get RawBytes from data
+	err := row.Scan(scanArgs...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Loop on all columns
+	for i, col := range values {
+		// Get column name and string value
+		strColName := string(columns[i])
+		strColValue := string(col)
+		strColType := columnTypeString
+
+		// Skip column proccessing when query type is show-slave-delay and the column isn't Seconds_Behind_Master
+		if queryType == queryTypeSlaveDelay && strColName != columnNameSlaveDelay {
+			continue
+		}
+
+		// Try to parse the value to an int64
+		nColValue, err := strconv.ParseInt(strColValue, 0, 64)
+		if err == nil {
+			strColType = columnTypeInt
+		}
+
+		// Try to parse the value to a float64
+		fColValue, err := strconv.ParseFloat(strColValue, 64)
+		if err == nil {
+			// If it's not already an established int64, set type to float
+			if strColType == columnTypeString {
+				strColType = columnTypeFloat
+			}
+		}
+
+		// If query type is single row and the column name ends with the deltaWildcard
+		if queryType == queryTypeSingleRow && strings.HasSuffix(strColName, bt.deltaWildcard) {
+			var exists bool
+			_, exists = bt.oldValues[strColName]
+
+			// If an older value doesn't exist
+			if !exists {
+				// Save the current value in the oldValues array
+				bt.oldValuesAge[strColName] = rowAge
+
+				if strColType == columnTypeString {
+					bt.oldValues[strColName] = strColValue
+				} else if strColType == columnTypeInt {
+					bt.oldValues[strColName] = nColValue
+				} else if strColType == columnTypeFloat {
+					bt.oldValues[strColName] = fColValue
+				}
+			} else {
+				// If found the old value's age
+				if dtOldAge, ok := bt.oldValuesAge[strColName].(time.Time); ok {
+					delta := rowAge.Sub(dtOldAge)
+
+					if strColType == columnTypeInt {
+						var calcVal int64
+
+						// Get old value
+						oldVal, _ := bt.oldValues[strColName].(int64)
+
+						if nColValue > oldVal {
+							// Calculate the delta
+							devResult := float64((nColValue - oldVal)) / float64(delta.Seconds())
+							// Round the calculated result back to an int64
+							calcVal = roundF2I(devResult, .5)
+						} else {
+							calcVal = 0
+						}
+
+						// Add the delta value to the event
+						event[strColName] = calcVal
+
+						// Save current values as old values
+						bt.oldValues[strColName] = nColValue
+						bt.oldValuesAge[strColName] = rowAge
+					} else if strColType == columnTypeFloat {
+						var calcVal float64
+						oldVal, _ := bt.oldValues[strColName].(float64)
+
+						if fColValue > oldVal {
+							// Calculate the delta
+							calcVal = (fColValue - oldVal) / float64(delta.Seconds())
+						} else {
+							calcVal = 0
+						}
+
+						// Add the delta value to the event
+						event[strColName] = calcVal
+
+						// Save current values as old values
+						bt.oldValues[strColName] = fColValue
+						bt.oldValuesAge[strColName] = rowAge
+					} else {
+						event[strColName] = strColValue
+					}
+				}
+			}
+		} else { // Not a delta column, add the value to the event as is
+			if strColType == columnTypeString {
+				event[strColName] = strColValue
+			} else if strColType == columnTypeInt {
+				event[strColName] = nColValue
+			} else if strColType == columnTypeFloat {
+				event[strColName] = fColValue
+			}
+		}
+	}
+
+	// If the event has no data, set to nil
+	if len(event) == 2 {
+		event = nil
+	}
+
+	return event, nil
 }
 
 // roundF2I is a function that returns a rounded int64 from a float64
