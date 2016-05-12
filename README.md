@@ -21,6 +21,8 @@ Fully customizable Beat for MySQL server - this beat can ship the results of any
 mysqlbeat uses Glide for dependency management. To install glide see: https://github.com/Masterminds/glide
 
 ```shell
+$ glide update --no-recursive
+$ make update
 $ go build
 ```
 
