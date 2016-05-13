@@ -22,8 +22,7 @@ mysqlbeat uses Glide for dependency management. To install glide see: https://gi
 
 ```shell
 $ glide update --no-recursive
-$ make update
-$ go build
+$ make
 ```
 
 ## Default Configuration
