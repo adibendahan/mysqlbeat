@@ -1,5 +1,5 @@
 # mysqlbeat
-Fully customizable Beat for MySQL server - this beat can ship the results of any query defined on the config file to Elastic.
+Fully customizable Beat for MySQL server - this beat will ship the results of any query defined in the config file to Elasticsearch.
 
 
 ## Current status
