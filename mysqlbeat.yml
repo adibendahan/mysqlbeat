@@ -62,6 +62,9 @@ mysqlbeat:
   # Colums that end with the following wild card will report only delta in seconds ((neval - oldval)/timediff.Seconds())
   deltawildcard: "__DELTA"
 
+  # Colums that end with the following wild card will be concatenated into a unique per row key for delta calculations
+  deltakeywildcard: "__DELTAKEY"  
+
 ###############################################################################
 ############################# Libbeat Config ##################################
 # Base config file used by all other beats for using libbeat features
