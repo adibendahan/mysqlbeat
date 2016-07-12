@@ -10,7 +10,7 @@ Fully customizable Beat for MySQL server - this beat will ship the results of an
 * Connect to any MySQL server and run queries
  * `single-row` queries will be translated as columnname:value.
  * `two-columns` will be translated as value-column1:value-column2 for each row.
- * `multiple-rows` each row will be a document (with columnname:value) - no DELTA support.
+ * `multiple-rows` each row will be a document (with columnname:value) **NEW:** Added DELTA support.
  * `show-slave-delay` will only send the "Seconds_Behind_Master" column from `SHOW SLAVE STATUS;`
 * Any column that ends with the delatwildcard (default is __DELTA) will send delta results, extremely useful for server counters.
   `((newval - oldval)/timediff.Seconds())`
@@ -33,6 +33,7 @@ You can:
  * Add query types to the `querytypes` array
  * Define Username/Password to connect to the MySQL
  * Define the column wild card for delta columns
+ * Define the column wild card for delta key columns 
  * Password can be saved in clear text/AES encryption
 
 If you choose to use the mysqlbeat as is, just run the following on your MySQL Server:

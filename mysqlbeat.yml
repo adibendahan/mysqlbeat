@@ -62,7 +62,8 @@ mysqlbeat:
   # Colums that end with the following wild card will report only delta in seconds ((neval - oldval)/timediff.Seconds())
   deltawildcard: "__DELTA"
 
-  # Colums that end with the following wild card will be concatenated into a unique per row key for delta calculations
+  # In a multiple-rows event, each row must have a unique key so that calculations could be saved for every column.
+  # IMPORTANT: make sure that the combination of all DeltaKey columns in a row create a UNIQUE value per row in the query
   deltakeywildcard: "__DELTAKEY"  
 
 ###############################################################################
