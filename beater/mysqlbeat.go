@@ -347,6 +347,7 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 	strColName := string(values[0])
 	strColValue := string(values[1])
 	strColType := columnTypeString
+	strEventColName := strings.Replace(strColName, bt.deltaWildcard, "_PERSECOND", 1)
 
 	// Try to parse the value to an int64
 	nColValue, err := strconv.ParseInt(strColValue, 0, 64)
@@ -400,7 +401,7 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 					}
 
 					// Add the delta value to the event
-					event[strColName] = calcVal
+					event[strEventColName] = calcVal
 
 					// Save current values as old values
 					bt.oldValues[strColName] = nColValue
@@ -418,23 +419,23 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 					}
 
 					// Add the delta value to the event
-					event[strColName] = calcVal
+					event[strEventColName] = calcVal
 
 					// Save current values as old values
 					bt.oldValues[strColName] = fColValue
 					bt.oldValuesAge[strColName] = rowAge
 				} else {
-					event[strColName] = strColValue
+					event[strEventColName] = strColValue
 				}
 			}
 		}
 	} else { // Not a delta column, add the value to the event as is
 		if strColType == columnTypeString {
-			event[strColName] = strColValue
+			event[strEventColName] = strColValue
 		} else if strColType == columnTypeInt {
-			event[strColName] = nColValue
+			event[strEventColName] = nColValue
 		} else if strColType == columnTypeFloat {
-			event[strColName] = fColValue
+			event[strEventColName] = fColValue
 		}
 	}
 
