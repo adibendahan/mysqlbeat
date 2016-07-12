@@ -17,4 +17,5 @@ type MysqlbeatConfig struct {
 	Queries           []string `yaml:"queries"`
 	QueryTypes        []string `yaml:"querytypes"`
 	DeltaWildcard     string   `yaml:"deltawildcard"`
+	DeltaKeyWildcard  string   `yaml:"deltakeywildcard"`
 }
