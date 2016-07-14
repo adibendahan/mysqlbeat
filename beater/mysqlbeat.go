@@ -184,9 +184,23 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 	bt.deltaWildcard = bt.beatConfig.Mysqlbeat.DeltaWildcard
 	bt.deltaKeyWildcard = bt.beatConfig.Mysqlbeat.DeltaKeyWildcard
 
+	safeQueries := true
+
 	logp.Info("Total # of queries to execute: %d", len(bt.queries))
 	for index, queryStr := range bt.queries {
+
+		strCleanQuery := strings.TrimSpace(strings.ToUpper(queryStr))
+
+		if !strings.HasPrefix(strCleanQuery, "SELECT") && !strings.HasPrefix(strCleanQuery, "SHOW") || strings.ContainsAny(strCleanQuery, ";") {
+			safeQueries = false
+		}
+
 		logp.Info("Query #%d (type: %s): %s", index+1, bt.queryTypes[index], queryStr)
+	}
+
+	if !safeQueries {
+		err := fmt.Errorf("Only SELECT/SHOW queries are allowed (the char ; is forbidden)")
+		return err
 	}
 
 	return nil
