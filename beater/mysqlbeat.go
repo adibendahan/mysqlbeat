@@ -24,17 +24,18 @@ import (
 
 // Mysqlbeat is a struct to hold the beat config & info
 type Mysqlbeat struct {
-	beatConfig    *config.Config
-	done          chan struct{}
-	period        time.Duration
-	hostname      string
-	port          string
-	username      string
-	password      string
-	passwordAES   string
-	queries       []string
-	queryTypes    []string
-	deltaWildcard string
+	beatConfig       *config.Config
+	done             chan struct{}
+	period           time.Duration
+	hostname         string
+	port             string
+	username         string
+	password         string
+	passwordAES      string
+	queries          []string
+	queryTypes       []string
+	deltaWildcard    string
+	deltaKeyWildcard string
 
 	oldValues    common.MapStr
 	oldValuesAge common.MapStr
@@ -52,12 +53,13 @@ const (
 	secret = "github.com/adibendahan/mysqlbeat"
 
 	// default values
-	defaultPeriod        = "10s"
-	defaultHostname      = "127.0.0.1"
-	defaultPort          = "3306"
-	defaultUsername      = "mysqlbeat_user"
-	defaultPassword      = "mysqlbeat_pass"
-	defaultDeltaWildcard = "__DELTA"
+	defaultPeriod           = "10s"
+	defaultHostname         = "127.0.0.1"
+	defaultPort             = "3306"
+	defaultUsername         = "mysqlbeat_user"
+	defaultPassword         = "mysqlbeat_pass"
+	defaultDeltaWildcard    = "__DELTA"
+	defaultDeltaKeyWildcard = "__DELTAKEY"
 
 	// query types values
 	queryTypeSingleRow    = "single-row"
@@ -139,6 +141,11 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 		bt.beatConfig.Mysqlbeat.DeltaWildcard = defaultDeltaWildcard
 	}
 
+	if bt.beatConfig.Mysqlbeat.DeltaKeyWildcard == "" {
+		logp.Info("DeltaKeyWildcard not selected, proceeding with '%v' as default", defaultDeltaKeyWildcard)
+		bt.beatConfig.Mysqlbeat.DeltaKeyWildcard = defaultDeltaKeyWildcard
+	}
+
 	// Parse the Period string
 	var durationParseError error
 	bt.period, durationParseError = time.ParseDuration(bt.beatConfig.Mysqlbeat.Period)
@@ -175,10 +182,25 @@ func (bt *Mysqlbeat) Setup(b *beat.Beat) error {
 	bt.queries = bt.beatConfig.Mysqlbeat.Queries
 	bt.queryTypes = bt.beatConfig.Mysqlbeat.QueryTypes
 	bt.deltaWildcard = bt.beatConfig.Mysqlbeat.DeltaWildcard
+	bt.deltaKeyWildcard = bt.beatConfig.Mysqlbeat.DeltaKeyWildcard
+
+	safeQueries := true
 
 	logp.Info("Total # of queries to execute: %d", len(bt.queries))
 	for index, queryStr := range bt.queries {
+
+		strCleanQuery := strings.TrimSpace(strings.ToUpper(queryStr))
+
+		if !strings.HasPrefix(strCleanQuery, "SELECT") && !strings.HasPrefix(strCleanQuery, "SHOW") || strings.ContainsAny(strCleanQuery, ";") {
+			safeQueries = false
+		}
+
 		logp.Info("Query #%d (type: %s): %s", index+1, bt.queryTypes[index], queryStr)
+	}
+
+	if !safeQueries {
+		err := fmt.Errorf("Only SELECT/SHOW queries are allowed (the char ; is forbidden)")
+		return err
 	}
 
 	return nil
@@ -262,7 +284,7 @@ LoopQueries:
 				event, err := bt.generateEventFromRow(rows, columns, bt.queryTypes[index], dtNow)
 
 				if err != nil {
-					logp.Err("Query #%v error generating event from rows: %v", index, err)
+					logp.Err("Query #%v error generating event from rows: %v", index+1, err)
 				} else if event != nil {
 					b.Events.PublishEvent(event)
 					logp.Info("%v event sent", bt.queryTypes[index])
@@ -275,7 +297,7 @@ LoopQueries:
 				event, err := bt.generateEventFromRow(rows, columns, bt.queryTypes[index], dtNow)
 
 				if err != nil {
-					logp.Err("Query #%v error generating event from rows: %v", index, err)
+					logp.Err("Query #%v error generating event from rows: %v", index+1, err)
 					break LoopRows
 				} else if event != nil {
 					b.Events.PublishEvent(event)
@@ -290,7 +312,7 @@ LoopQueries:
 				err := bt.appendRowToEvent(twoColumnEvent, rows, columns, dtNow)
 
 				if err != nil {
-					logp.Err("Query #%v error appending two-columns event: %v", index, err)
+					logp.Err("Query #%v error appending two-columns event: %v", index+1, err)
 					break LoopRows
 				}
 
@@ -308,7 +330,7 @@ LoopQueries:
 
 		rows.Close()
 		if err = rows.Err(); err != nil {
-			logp.Err("Query #%v error closing rows: %v", index, err)
+			logp.Err("Query #%v error closing rows: %v", index+1, err)
 			continue LoopQueries
 		}
 	}
@@ -339,6 +361,7 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 	strColName := string(values[0])
 	strColValue := string(values[1])
 	strColType := columnTypeString
+	strEventColName := strings.Replace(strColName, bt.deltaWildcard, "_PERSECOND", 1)
 
 	// Try to parse the value to an int64
 	nColValue, err := strconv.ParseInt(strColValue, 0, 64)
@@ -392,7 +415,7 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 					}
 
 					// Add the delta value to the event
-					event[strColName] = calcVal
+					event[strEventColName] = calcVal
 
 					// Save current values as old values
 					bt.oldValues[strColName] = nColValue
@@ -410,23 +433,23 @@ func (bt *Mysqlbeat) appendRowToEvent(event common.MapStr, row *sql.Rows, column
 					}
 
 					// Add the delta value to the event
-					event[strColName] = calcVal
+					event[strEventColName] = calcVal
 
 					// Save current values as old values
 					bt.oldValues[strColName] = fColValue
 					bt.oldValuesAge[strColName] = rowAge
 				} else {
-					event[strColName] = strColValue
+					event[strEventColName] = strColValue
 				}
 			}
 		}
 	} else { // Not a delta column, add the value to the event as is
 		if strColType == columnTypeString {
-			event[strColName] = strColValue
+			event[strEventColName] = strColValue
 		} else if strColType == columnTypeInt {
-			event[strColName] = nColValue
+			event[strEventColName] = nColValue
 		} else if strColType == columnTypeFloat {
-			event[strColName] = fColValue
+			event[strEventColName] = fColValue
 		}
 	}
 
@@ -470,6 +493,16 @@ func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, query
 			continue
 		}
 
+		// Set the event column name to the original column name (as default)
+		strEventColName := strColName
+
+		// Remove unneeded suffix, add _PERSECOND to calculated columns
+		if strings.HasSuffix(strColName, bt.deltaKeyWildcard) {
+			strEventColName = strings.Replace(strColName, bt.deltaKeyWildcard, "", 1)
+		} else if strings.HasSuffix(strColName, bt.deltaWildcard) {
+			strEventColName = strings.Replace(strColName, bt.deltaWildcard, "_PERSECOND", 1)
+		}
+
 		// Try to parse the value to an int64
 		nColValue, err := strconv.ParseInt(strColValue, 0, 64)
 		if err == nil {
@@ -485,33 +518,50 @@ func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, query
 			}
 		}
 
-		// If query type is single row and the column name ends with the deltaWildcard
-		if queryType == queryTypeSingleRow && strings.HasSuffix(strColName, bt.deltaWildcard) {
+		// If the column name ends with the deltaWildcard
+		if (queryType == queryTypeSingleRow || queryType == queryTypeMultipleRows) && strings.HasSuffix(strColName, bt.deltaWildcard) {
+
+			var strKey string
+
+			// Get unique row key, if it's a single row - use the column name
+			if queryType == queryTypeSingleRow {
+				strKey = strColName
+			} else if queryType == queryTypeMultipleRows {
+
+				// If the query has multiple rows, a unique row key must be defind using the delta key wildcard and the column name
+				strKey, err = getKeyFromRow(bt, values, columns)
+				if err != nil {
+					return nil, err
+				}
+
+				strKey += strColName
+			}
+
 			var exists bool
-			_, exists = bt.oldValues[strColName]
+			_, exists = bt.oldValues[strKey]
 
 			// If an older value doesn't exist
 			if !exists {
 				// Save the current value in the oldValues array
-				bt.oldValuesAge[strColName] = rowAge
+				bt.oldValuesAge[strKey] = rowAge
 
 				if strColType == columnTypeString {
-					bt.oldValues[strColName] = strColValue
+					bt.oldValues[strKey] = strColValue
 				} else if strColType == columnTypeInt {
-					bt.oldValues[strColName] = nColValue
+					bt.oldValues[strKey] = nColValue
 				} else if strColType == columnTypeFloat {
-					bt.oldValues[strColName] = fColValue
+					bt.oldValues[strKey] = fColValue
 				}
 			} else {
 				// If found the old value's age
-				if dtOldAge, ok := bt.oldValuesAge[strColName].(time.Time); ok {
+				if dtOldAge, ok := bt.oldValuesAge[strKey].(time.Time); ok {
 					delta := rowAge.Sub(dtOldAge)
 
 					if strColType == columnTypeInt {
 						var calcVal int64
 
 						// Get old value
-						oldVal, _ := bt.oldValues[strColName].(int64)
+						oldVal, _ := bt.oldValues[strKey].(int64)
 
 						if nColValue > oldVal {
 							// Calculate the delta
@@ -523,14 +573,14 @@ func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, query
 						}
 
 						// Add the delta value to the event
-						event[strColName] = calcVal
+						event[strEventColName] = calcVal
 
 						// Save current values as old values
-						bt.oldValues[strColName] = nColValue
-						bt.oldValuesAge[strColName] = rowAge
+						bt.oldValues[strKey] = nColValue
+						bt.oldValuesAge[strKey] = rowAge
 					} else if strColType == columnTypeFloat {
 						var calcVal float64
-						oldVal, _ := bt.oldValues[strColName].(float64)
+						oldVal, _ := bt.oldValues[strKey].(float64)
 
 						if fColValue > oldVal {
 							// Calculate the delta
@@ -540,23 +590,23 @@ func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, query
 						}
 
 						// Add the delta value to the event
-						event[strColName] = calcVal
+						event[strEventColName] = calcVal
 
 						// Save current values as old values
-						bt.oldValues[strColName] = fColValue
-						bt.oldValuesAge[strColName] = rowAge
+						bt.oldValues[strKey] = fColValue
+						bt.oldValuesAge[strKey] = rowAge
 					} else {
-						event[strColName] = strColValue
+						event[strEventColName] = strColValue
 					}
 				}
 			}
 		} else { // Not a delta column, add the value to the event as is
 			if strColType == columnTypeString {
-				event[strColName] = strColValue
+				event[strEventColName] = strColValue
 			} else if strColType == columnTypeInt {
-				event[strColName] = nColValue
+				event[strEventColName] = nColValue
 			} else if strColType == columnTypeFloat {
-				event[strColName] = fColValue
+				event[strEventColName] = fColValue
 			}
 		}
 	}
@@ -567,6 +617,27 @@ func (bt *Mysqlbeat) generateEventFromRow(row *sql.Rows, columns []string, query
 	}
 
 	return event, nil
+}
+
+// getKeyFromRow is a function that returns a unique key from row
+func getKeyFromRow(bt *Mysqlbeat, values []sql.RawBytes, columns []string) (strKey string, err error) {
+
+	keyFound := false
+
+	// Loop on all columns
+	for i, col := range values {
+		// Get column name and string value
+		if strings.HasSuffix(string(columns[i]), bt.deltaKeyWildcard) {
+			strKey += string(col)
+			keyFound = true
+		}
+	}
+
+	if !keyFound {
+		err = fmt.Errorf("query type multiple-rows requires at least one delta key column")
+	}
+
+	return strKey, err
 }
 
 // roundF2I is a function that returns a rounded int64 from a float64

@@ -24,37 +24,37 @@
         "@timestamp": {
           "type": "date"
         },
-        "ABORTED_CONNECTS__DELTA": {
+        "ABORTED_CONNECTS_PERSECOND": {
           "type": "long"
         },
-        "CONNECTION_ERRORS_INTERNAL__DELTA": {
+        "CONNECTION_ERRORS_INTERNAL_PERSECOND": {
           "type": "long"
         },
-        "CONNECTION_ERRORS_MAX_CONNECTIONS__DELTA": {
+        "CONNECTION_ERRORS_MAX_CONNECTIONS_PERSECOND": {
           "type": "long"
         },
         "CONST_100": {
           "type": "long"
         },        
-        "CREATED_TMP_DISK_TABLES__DELTA": {
+        "CREATED_TMP_DISK_TABLES_PERSECOND": {
           "type": "long"
         },
-        "CREATED_TMP_FILES__DELTA": {
+        "CREATED_TMP_FILES_PERSECOND": {
           "type": "long"
         },
-        "CREATED_TMP_TABLES__DELTA": {
+        "CREATED_TMP_TABLES_PERSECOND": {
           "type": "long"
         },
-        "HANDLER_COMMIT__DELTA": {
+        "HANDLER_COMMIT_PERSECOND": {
           "type": "long"
         },
-        "HANDLER_ROLLBACK__DELTA": {
+        "HANDLER_ROLLBACK_PERSECOND": {
           "type": "long"
         },
-        "HANDLER_SAVEPOINT_ROLLBACK__DELTA": {
+        "HANDLER_SAVEPOINT_ROLLBACK_PERSECOND": {
           "type": "long"
         },
-        "HANDLER_SAVEPOINT__DELTA": {
+        "HANDLER_SAVEPOINT_PERSECOND": {
           "type": "long"
         },
         "INNODB_BUFFER_POOL_HIT_RATIO": {
@@ -72,64 +72,64 @@
         "INNODB_PAGE_SIZE": {
           "type": "long"
         },        
-        "INNODB_DATA_FSYNCS__DELTA": {
+        "INNODB_DATA_FSYNCS_PERSECOND": {
           "type": "long"
         },
-        "INNODB_DATA_READS__DELTA": {
+        "INNODB_DATA_READS_PERSECOND": {
           "type": "long"
         },
-        "INNODB_DATA_WRITES__DELTA": {
+        "INNODB_DATA_WRITES_PERSECOND": {
           "type": "long"
         },
-        "INNODB_LOG_WRITES__DELTA": {
+        "INNODB_LOG_WRITES_PERSECOND": {
           "type": "long"
         },
-        "INNODB_OS_LOG_FSYNCS__DELTA": {
+        "INNODB_OS_LOG_FSYNCS_PERSECOND": {
           "type": "long"
         },
-        "INNODB_PAGES_CREATED__DELTA": {
+        "INNODB_PAGES_CREATED_PERSECOND": {
           "type": "long"
         },   
-        "INNODB_PAGES_READ__DELTA": {
+        "INNODB_PAGES_READ_PERSECOND": {
           "type": "long"
         },
-        "INNODB_PAGES_WRITTEN__DELTA": {
+        "INNODB_PAGES_WRITTEN_PERSECOND": {
           "type": "long"
         },
-        "INNODB_ROWS_DELETED__DELTA": {
+        "INNODB_ROWS_DELETED_PERSECOND": {
           "type": "long"
         },
-        "INNODB_ROWS_INSERTED__DELTA": {
+        "INNODB_ROWS_INSERTED_PERSECOND": {
           "type": "long"
         },
-        "INNODB_ROWS_READ__DELTA": {
+        "INNODB_ROWS_READ_PERSECOND": {
           "type": "long"
         },
-        "INNODB_ROWS_UPDATED__DELTA": {
+        "INNODB_ROWS_UPDATED_PERSECOND": {
           "type": "long"
         },
-        "INNODB_ROW_LOCK_WAITS__DELTA": {
+        "INNODB_ROW_LOCK_WAITS_PERSECOND": {
           "type": "long"
         },        
-        "INNODB_ROW_LOCK_TIME__DELTA": {
+        "INNODB_ROW_LOCK_TIME_PERSECOND": {
           "type": "long"
         },
-        "KEY_READS__DELTA": {
+        "KEY_READS_PERSECOND": {
           "type": "long"
         },
-        "KEY_READ_REQUESTS__DELTA": {
+        "KEY_READ_REQUESTS_PERSECOND": {
           "type": "long"
         },
-        "KEY_WRITES__DELTA": {
+        "KEY_WRITES_PERSECOND": {
           "type": "long"
         },
-        "KEY_WRITE_REQUESTS__DELTA": {
+        "KEY_WRITE_REQUESTS_PERSECOND": {
           "type": "long"
         },
         "MAX_CONNECTIONS": {
           "type": "long"
         },
-        "OPENED_TABLES__DELTA": {
+        "OPENED_TABLES_PERSECOND": {
           "type": "long"
         },
         "OPEN_FILES": {
@@ -138,58 +138,58 @@
         "OPEN_TABLES": {
           "type": "long"
         },
-        "QCACHE_HITS__DELTA": {
+        "QCACHE_HITS_PERSECOND": {
           "type": "long"
         },
-        "QCACHE_INSERTS__DELTA": {
+        "QCACHE_INSERTS_PERSECOND": {
           "type": "long"
         },
-        "QCACHE_LOWMEM_PRUNES__DELTA": {
+        "QCACHE_LOWMEM_PRUNES_PERSECOND": {
           "type": "long"
         },
-        "QCACHE_NOT_CACHED__DELTA": {
+        "QCACHE_NOT_CACHED_PERSECOND": {
           "type": "long"
         },
         "QCACHE_QUERIES_IN_CACHE": {
           "type": "long"
         },
-        "SELECT_FULL_JOIN__DELTA": {
+        "SELECT_FULL_JOIN_PERSECOND": {
           "type": "long"
         },
-        "SELECT_FULL_RANGE_JOIN__DELTA": {
+        "SELECT_FULL_RANGE_JOIN_PERSECOND": {
           "type": "long"
         },
-        "SELECT_RANGE_CHECK__DELTA": {
+        "SELECT_RANGE_CHECK_PERSECOND": {
           "type": "long"
         },
-        "SELECT_RANGE__DELTA": {
+        "SELECT_RANGE_PERSECOND": {
           "type": "long"
         },
-        "SELECT_SCAN__DELTA": {
+        "SELECT_SCAN_PERSECOND": {
           "type": "long"
         },
-        "SLOW_QUERIES__DELTA": {
+        "SLOW_QUERIES_PERSECOND": {
           "type": "long"
         },
-        "SORT_MERGE_PASSES__DELTA": {
+        "SORT_MERGE_PASSES_PERSECOND": {
           "type": "long"
         },
-        "SORT_RANGE__DELTA": {
+        "SORT_RANGE_PERSECOND": {
           "type": "long"
         },
-        "SORT_ROWS__DELTA": {
+        "SORT_ROWS_PERSECOND": {
           "type": "long"
         },
-        "SORT_SCAN__DELTA": {
+        "SORT_SCAN_PERSECOND": {
           "type": "long"
         },
         "Seconds_Behind_Master": {
           "type": "long"
         },
-        "TABLE_LOCKS_IMMEDIATE__DELTA": {
+        "TABLE_LOCKS_IMMEDIATE_PERSECOND": {
           "type": "long"
         },
-        "TABLE_LOCKS_WAITED__DELTA": {
+        "TABLE_LOCKS_WAITED_PERSECOND": {
           "type": "long"
         },
         "TABLE_OPEN_CACHE": {

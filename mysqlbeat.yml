@@ -23,6 +23,7 @@ mysqlbeat:
   #encryptedpassword: "2321f38819cf693951e88f00cd82"
 
   # Defines the queries that will run  - the query below is an example
+  # LIMITATIONS: Query must start with SELECT/SHOW and cannot contain the character ; (for security reasons)
   queries: [ "SELECT  CONCAT(VARIABLE_NAME, '__DELTA') AS VARIABLE_NAME, VARIABLE_VALUE 
               FROM    information_schema.GLOBAL_STATUS 
               WHERE   VARIABLE_NAME IN ('ABORTED_CONNECTS', 'CONNECTION_ERRORS_INTERNAL', 'CONNECTION_ERRORS_MAX_CONNECTIONS', 'CREATED_TMP_DISK_TABLES', 'CREATED_TMP_FILES', 
@@ -61,6 +62,10 @@ mysqlbeat:
 
   # Colums that end with the following wild card will report only delta in seconds ((neval - oldval)/timediff.Seconds())
   deltawildcard: "__DELTA"
+
+  # In a multiple-rows event, each row must have a unique key so that calculations could be saved for every column.
+  # IMPORTANT: make sure that the combination of all DeltaKey columns in a row create a UNIQUE value per row in the query
+  deltakeywildcard: "__DELTAKEY"  
 
 ###############################################################################
 ############################# Libbeat Config ##################################
